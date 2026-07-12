@@ -178,10 +178,14 @@ is printed to **stderr**, so `costblame > report.txt` captures just the table.
 ## Dashboard
 
 ```sh
-costblame serve            # all projects, http://127.0.0.1:7777
-costblame serve --repo .   # scope to one repo
+costblame serve            # the current repo, http://127.0.0.1:7777
+costblame serve --all      # every project under ~/.claude etc.
+costblame serve --repo DIR # a specific repo
 costblame serve --port 8080
 ```
+
+`serve` scopes to the directory you run it in (same as the plain `costblame`
+command); pass `--all` to see every project at once.
 
 A local, offline web dashboard: a plan-vs-usage hero, a **spend-by-provider**
 segmented bar (Claude / Codex / Gemini) with legend, summary tiles, a

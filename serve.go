@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 //go:embed dashboard.html
@@ -17,7 +18,8 @@ var dashboardHTML []byte
 // — it binds to localhost and serves only its own embedded HTML.
 func runServe(args []string) {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
-	repo := fs.String("repo", "", "scope to a single repo (default: all projects)")
+	repo := fs.String("repo", ".", "repo to scope to (defaults to the current directory)")
+	all := fs.Bool("all", false, "show every project under ~/.claude etc., not just this repo")
 	pricingPath := fs.String("pricing", "", "path to a pricing.json overriding the embedded defaults")
 	raw := fs.Bool("raw", false, "show raw API-equivalent cost only, without the plan comparison")
 	port := fs.Int("port", 7777, "localhost port to bind")
@@ -31,17 +33,18 @@ func runServe(args []string) {
 
 	build := func() (Report, error) {
 		var projects []ProjectData
-		if *repo != "" {
+		if *all {
+			ps, err := CollectAll()
+			if err != nil {
+				return Report{}, err
+			}
+			projects = ps
+		} else {
 			pd, err := CollectRepo(*repo)
 			if err != nil {
 				return Report{}, err
 			}
 			projects = []ProjectData{pd}
-		} else {
-			projects, err = CollectAll()
-			if err != nil {
-				return Report{}, err
-			}
 		}
 		rep := BuildReport(projects, pt, src)
 		attachPlan(&rep, cfg, *raw)
@@ -71,8 +74,12 @@ func runServe(args []string) {
 
 	addr := fmt.Sprintf("127.0.0.1:%d", *port)
 	scope := "all projects"
-	if *repo != "" {
-		scope = *repo
+	if !*all {
+		if abs, aerr := filepath.Abs(*repo); aerr == nil {
+			scope = abs
+		} else {
+			scope = *repo
+		}
 	}
 	fmt.Fprintf(os.Stderr, "costblame dashboard (%s) → http://%s\n", scope, addr)
 	fmt.Fprintln(os.Stderr, "serving on localhost only; Ctrl-C to stop")
