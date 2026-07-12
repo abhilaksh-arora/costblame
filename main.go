@@ -11,6 +11,7 @@
 //	costblame [--repo DIR] [--all] [--json] [--by day|week] [--pricing FILE]
 //	costblame serve [--repo DIR] [--pricing FILE] [--port N]
 //	costblame init            (alias of configure — set your plan)
+//	costblame uninstall       (remove the binary + ~/.costblame config)
 //
 // All data stays on the local machine.
 package main
@@ -30,6 +31,9 @@ func main() {
 			return
 		case "configure", "init":
 			runConfigure(os.Args[2:])
+			return
+		case "uninstall":
+			runUninstall(os.Args[2:])
 			return
 		}
 	}

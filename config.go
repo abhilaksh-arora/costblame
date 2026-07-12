@@ -43,6 +43,32 @@ func configPath() (string, error) {
 	return filepath.Join(home, ".costblame", "config.json"), nil
 }
 
+// runUninstall removes the installed binary and the ~/.costblame config. It
+// never touches the session logs (~/.claude, ~/.codex, ~/.gemini).
+func runUninstall(_ []string) {
+	if home, err := os.UserHomeDir(); err == nil {
+		dir := filepath.Join(home, ".costblame")
+		if _, statErr := os.Stat(dir); statErr == nil {
+			if os.RemoveAll(dir) == nil {
+				fmt.Printf("removed %s\n", dir)
+			}
+		}
+	}
+
+	exe, err := os.Executable()
+	if err != nil {
+		fatal("could not locate the binary to remove: %v", err)
+	}
+	if resolved, e := filepath.EvalSymlinks(exe); e == nil {
+		exe = resolved // remove the real file, not a symlink to it
+	}
+	if err := os.Remove(exe); err != nil {
+		fatal("could not remove %s: %v\n  remove it manually: rm %s", exe, err, exe)
+	}
+	fmt.Printf("removed %s\n", exe)
+	fmt.Println("costblame uninstalled. Your Claude/Codex/Gemini logs are untouched.")
+}
+
 // LoadConfig returns the stored config, or (nil, nil) if none exists yet.
 func LoadConfig() (*Config, error) {
 	path, err := configPath()

@@ -90,7 +90,8 @@ costblame serve       # dashboard → http://127.0.0.1:7777
 costblame --all       # or a CLI table across every project
 ```
 
-`make uninstall` removes it.
+Remove it with `costblame uninstall` (deletes the binary + `~/.costblame`
+config; logs untouched) or `make uninstall`.
 
 **Straight from GitHub** (installs to `$(go env GOPATH)/bin` — add that to your
 PATH):
