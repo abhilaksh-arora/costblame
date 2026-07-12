@@ -77,6 +77,14 @@ func parsePricing(b []byte) (*PricingTable, error) {
 	return &pt, nil
 }
 
+// isNonBillable reports whether a model id is a placeholder rather than a real
+// billable model. Claude Code emits "<synthetic>" (and similar angle-bracketed
+// sentinels) for internally generated messages that carry no token cost, so
+// these should be treated as $0 silently rather than warned about as unpriced.
+func isNonBillable(model string) bool {
+	return strings.HasPrefix(model, "<")
+}
+
 // Cost returns the USD cost of one usage record. found reports whether any
 // model prefix matched; an unmatched model yields ($0, false) so the caller
 // can warn rather than silently mis-bill.

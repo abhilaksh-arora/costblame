@@ -101,7 +101,7 @@ func aggregateProject(pd ProjectData, pt *PricingTable, unpriced map[string]bool
 	for _, e := range pd.Events {
 		write5m := e.CacheCreate - e.CacheCreate1h
 		cost, found := pt.Cost(e.Model, e.Input, e.Output, write5m, e.CacheCreate1h, e.CacheRead)
-		if !found && e.Model != "" {
+		if !found && e.Model != "" && !isNonBillable(e.Model) {
 			unpriced[e.Model] = true
 		}
 
