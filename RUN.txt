@@ -1,0 +1,35 @@
+costblame — attribute your Claude Code / Codex / Gemini token spend
+====================================================================
+
+It reads YOUR local session logs (~/.claude, ~/.codex, ~/.gemini) and shows
+cost per project / provider / branch. Nothing leaves your machine — the
+dashboard binds to localhost only. No install, no dependencies, one file.
+
+PICK YOUR BINARY
+  Apple Silicon Mac (M1/M2/M3/M4) .. costblame-macos-arm64
+  Intel Mac ....................... costblame-macos-intel
+  Linux (most) .................... costblame-linux-amd64
+  Linux (ARM) ..................... costblame-linux-arm64
+  Windows ......................... costblame-windows.exe
+
+RUN — macOS / Linux
+  chmod +x ./costblame-macos-arm64          # make executable (once)
+  ./costblame-macos-arm64 serve             # dashboard → http://127.0.0.1:7777
+  ./costblame-macos-arm64 --all             # or a plain CLI table
+
+  macOS may block it ("unidentified developer"). Clear the quarantine once:
+    xattr -dr com.apple.quarantine ./costblame-macos-arm64
+  (or right-click the file → Open → Open anyway)
+
+RUN — Windows
+  Double-click costblame-windows.exe, or in PowerShell:  .\costblame-windows.exe serve
+  SmartScreen may warn → "More info" → "Run anyway".
+  Then open http://127.0.0.1:7777
+
+FIRST RUN
+  It asks once for your Claude plan (to frame cost vs a flat subscription).
+  Press Enter / pick "Skip" to ignore — the numbers work either way.
+
+PRICING
+  Rates are baked in (verified 2026-07-12). To override, drop a pricing.json
+  next to the binary — see the project README.

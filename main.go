@@ -10,6 +10,7 @@
 //
 //	costblame [--repo DIR] [--all] [--json] [--by day|week] [--pricing FILE]
 //	costblame serve [--repo DIR] [--pricing FILE] [--port N]
+//	costblame init            (alias of configure — set your plan)
 //
 // All data stays on the local machine.
 package main
@@ -27,7 +28,7 @@ func main() {
 		case "serve":
 			runServe(os.Args[2:])
 			return
-		case "configure":
+		case "configure", "init":
 			runConfigure(os.Args[2:])
 			return
 		}

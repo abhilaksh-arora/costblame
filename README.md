@@ -70,12 +70,49 @@ never hidden inside the total.
 The plan → flat-price mapping is a small hardcoded table (see `config.go`); update
 it if Anthropic changes plan prices.
 
-## Install / build
+## Install
 
-Go stdlib only, no dependencies:
+Go stdlib only, no dependencies. Once installed, run it from **any** repo.
+
+**From a clone (recommended):**
 
 ```sh
-go build -o costblame .
+git clone git@github.com:abhilaksh-arora/costblame.git
+cd costblame
+make install          # builds + installs to ~/.local/bin (must be on PATH)
+```
+
+Then, in any project:
+
+```sh
+costblame init        # one-time: pick your plan (alias of `configure`)
+costblame serve       # dashboard → http://127.0.0.1:7777
+costblame --all       # or a CLI table across every project
+```
+
+`make uninstall` removes it.
+
+**Straight from GitHub** (installs to `$(go env GOPATH)/bin` — add that to your
+PATH):
+
+```sh
+# private repo: allow the module and use SSH auth once
+go env -w GOPRIVATE=github.com/abhilaksh-arora/*
+git config --global url."git@github.com:".insteadOf "https://github.com/"
+
+go install github.com/abhilaksh-arora/costblame@latest
+```
+
+**Just build a local binary:**
+
+```sh
+make build            # → ./costblame   (or: go build -o costblame .)
+```
+
+**Cross-compile release zips** (macOS/Linux/Windows) for sharing:
+
+```sh
+make dist             # → dist/*.zip
 ```
 
 ## Usage
