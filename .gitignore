@@ -1,0 +1,8 @@
+# local build output
+/costblame
+
+# release artifacts — attach these to GitHub Releases, don't commit them
+/dist/
+
+# local config
+/.costblame/
