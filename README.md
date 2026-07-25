@@ -73,6 +73,18 @@ costblame sync --repo ~/work/api --repo ~/work/web   # just these two, nothing e
 costblame serve --repo ~/work/api --repo ~/work/web  # same, in the dashboard
 ```
 
+Or exclude a project permanently instead of picking the others every time —
+run this once, from inside it:
+
+```sh
+costblame ignore      # this repo drops out of --all / sync --all / serve --all
+costblame unignore    # undo
+costblame ignored     # what's currently excluded
+```
+
+An ignored repo still shows up if you ask for it directly with `--repo`; it's
+only left out of the "everything" views.
+
 A few more commands and flags:
 
 ```sh

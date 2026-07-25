@@ -152,7 +152,21 @@ func CollectAll() ([]ProjectData, error) {
 	if err != nil {
 		return nil, err
 	}
-	return groupByRepo(act), nil
+	projects := groupByRepo(act)
+
+	// Ignoring is best-effort: a missing/unreadable ignore list just means
+	// nothing is filtered, not a hard failure of the whole scan.
+	ignored, _ := LoadIgnored()
+	if len(ignored) == 0 {
+		return projects, nil
+	}
+	kept := projects[:0]
+	for _, p := range projects {
+		if !ignored[p.RepoPath] {
+			kept = append(kept, p)
+		}
+	}
+	return kept, nil
 }
 
 // CollectRepo gathers events for a single repo (the --repo path) across all

@@ -27,6 +27,9 @@ func runHelp(args []string) {
 COMMANDS
   costblame sync [flags]    spend for this project (add --all for every project)
   costblame serve [flags]   open the local dashboard
+  costblame ignore [DIR]    drop a repo from --all views (default: current directory)
+  costblame unignore [DIR]  reverse ignore
+  costblame ignored         list what's currently ignored
   costblame init            pick your plan (alias of configure)
   costblame configure       same as init
   costblame update          update to the latest release
@@ -50,6 +53,9 @@ FLAGS (serve)
   --pricing FILE   override the built-in pricing table
   --raw            drop the plan comparison
   --port N         localhost port (default 7777)
+
+Ignoring a repo only drops it from --all views; costblame sync --repo DIR
+still shows an ignored repo directly if you ask for it by name.
 
 Nothing leaves your machine. Full docs: https://github.com/abhilaksh-arora/costblame
 `)

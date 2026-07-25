@@ -13,6 +13,9 @@
 //	                                              spend for this project, an explicit list
 //	                                              (--repo can repeat), or --all for every one
 //	costblame serve [--repo DIR ...] [--pricing FILE] [--port N]
+//	costblame ignore [DIR]                       drop a repo from --all views (default: cwd)
+//	costblame unignore [DIR]                     reverse ignore
+//	costblame ignored                            list what's ignored
 //	costblame init                               (alias of configure — set your plan)
 //	costblame update                             update to the latest release
 //	costblame uninstall                          (remove the binary + ~/.costblame config)
@@ -55,6 +58,15 @@ func main() {
 		return
 	case "uninstall":
 		runUninstall(os.Args[2:])
+		return
+	case "ignore":
+		runIgnore(os.Args[2:])
+		return
+	case "unignore":
+		runUnignore(os.Args[2:])
+		return
+	case "ignored":
+		runIgnored(os.Args[2:])
 		return
 	case "sync":
 		// Same flags as the default report (--repo, --all, --json, ...); just
