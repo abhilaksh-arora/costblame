@@ -121,6 +121,7 @@ func runReport(args []string) {
 		renderProjectTable(os.Stdout, rep)
 	default:
 		renderBranchTable(os.Stdout, rep.Projects[0])
+		renderActivity(os.Stdout, rep.Projects[0])
 	}
 
 	fmt.Fprintf(os.Stderr, "\n%d project(s), %d session(s); pricing: %s\n",

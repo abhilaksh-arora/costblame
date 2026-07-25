@@ -24,6 +24,55 @@ func renderBranchTable(w io.Writer, pr ProjectReport) {
 	tw.Flush()
 }
 
+// renderActivity prints code-impact and workflow signals derived from
+// Claude's edit tool calls — cost/edit, cost/100 changed lines, cache
+// efficiency, rework loops, corrections, and tool error rate — plus the most
+// heavily touched files. Claude-only, so it's skipped entirely when there's
+// no edit activity to show (e.g. a Codex/Gemini-only project).
+func renderActivity(w io.Writer, pr ProjectReport) {
+	a := pr.Activity
+	if a.Edits == 0 && a.ToolCalls == 0 {
+		return
+	}
+	fmt.Fprintln(w, "\nACTIVITY (Claude only)")
+	tw := tabwriter.NewWriter(w, 0, 2, 2, ' ', 0)
+	fmt.Fprintln(tw, "EDITS\t+LINES\t-LINES\tCOST/EDIT\tCOST/100 LINES\tREWORK\tCORRECTIONS\tTOOL ERR%")
+	errRate := "-"
+	if a.ToolCalls > 0 {
+		errRate = fmt.Sprintf("%.1f%%", a.ToolErrorRate*100)
+	}
+	costPerEdit, costPer100 := "-", "-"
+	if a.Edits > 0 {
+		costPerEdit = fmt.Sprintf("$%.3f", a.CostPerEdit)
+	}
+	if a.ChangedLines > 0 {
+		costPer100 = fmt.Sprintf("$%.3f", a.CostPer100Lines)
+	}
+	fmt.Fprintf(tw, "%d\t%d\t%d\t%s\t%s\t%d\t%d\t%s\n",
+		a.Edits, a.LinesAdded, a.LinesRemoved, costPerEdit, costPer100, a.ReworkLoops, a.Corrections, errRate)
+	tw.Flush()
+
+	if len(pr.Files) > 0 {
+		fmt.Fprintln(w, "\nTOP FILES")
+		ftw := tabwriter.NewWriter(w, 0, 2, 2, ' ', 0)
+		fmt.Fprintln(ftw, "FILE\tEDITS\t+LINES\t-LINES\tSESSIONS")
+		for _, f := range pr.Files {
+			fmt.Fprintf(ftw, "%s\t%d\t%d\t%d\t%d\n", f.Path, f.Edits, f.LinesAdded, f.LinesRemoved, f.Sessions)
+		}
+		ftw.Flush()
+	}
+
+	if len(pr.Tools) > 0 {
+		fmt.Fprintln(w, "\nTOOLS")
+		ttw := tabwriter.NewWriter(w, 0, 2, 2, ' ', 0)
+		fmt.Fprintln(ttw, "TOOL\tCALLS\tERRORS")
+		for _, t := range pr.Tools {
+			fmt.Fprintf(ttw, "%s\t%d\t%d\n", t.Name, t.Calls, t.Errors)
+		}
+		ttw.Flush()
+	}
+}
+
 // renderProviderTable prints spend split by AI provider (claude/codex/gemini).
 func renderProviderTable(w io.Writer, rep Report) {
 	if len(rep.Providers) == 0 {
@@ -48,15 +97,24 @@ func renderProviderTable(w io.Writer, rep Report) {
 // renderProjectTable prints per-project spend (the --all view).
 func renderProjectTable(w io.Writer, rep Report) {
 	tw := tabwriter.NewWriter(w, 0, 2, 2, ' ', 0)
-	fmt.Fprintln(tw, "PROJECT\tINPUT\tOUTPUT\tCACHE WR\tCACHE RD\tCOST\tSESSIONS\tDURATION")
+	fmt.Fprintln(tw, "PROJECT\tINPUT\tOUTPUT\tCACHE WR\tCACHE RD\tCOST\tSESSIONS\tDURATION\tEDITS\tCOST/EDIT")
 	for _, p := range rep.Projects {
-		fmt.Fprintf(tw, "%s\t%d\t%d\t%d\t%d\t$%.2f\t%d\t%s\n",
+		costPerEdit := "-"
+		if p.Activity.Edits > 0 {
+			costPerEdit = fmt.Sprintf("$%.3f", p.Activity.CostPerEdit)
+		}
+		fmt.Fprintf(tw, "%s\t%d\t%d\t%d\t%d\t$%.2f\t%d\t%s\t%d\t%s\n",
 			p.Project, p.Totals.Input, p.Totals.Output, p.Totals.CacheCreate,
-			p.Totals.CacheRead, p.Totals.Cost, p.Sessions, humanDur(p.First, p.Last))
+			p.Totals.CacheRead, p.Totals.Cost, p.Sessions, humanDur(p.First, p.Last),
+			p.Activity.Edits, costPerEdit)
 	}
 	t := rep.Totals
-	fmt.Fprintf(tw, "TOTAL\t%d\t%d\t%d\t%d\t$%.2f\t%d\t\n",
-		t.Input, t.Output, t.CacheCreate, t.CacheRead, t.Cost, rep.Sessions)
+	costPerEdit := "-"
+	if rep.Activity.Edits > 0 {
+		costPerEdit = fmt.Sprintf("$%.3f", rep.Activity.CostPerEdit)
+	}
+	fmt.Fprintf(tw, "TOTAL\t%d\t%d\t%d\t%d\t$%.2f\t%d\t\t%d\t%s\n",
+		t.Input, t.Output, t.CacheCreate, t.CacheRead, t.Cost, rep.Sessions, rep.Activity.Edits, costPerEdit)
 	tw.Flush()
 }
 

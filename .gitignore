@@ -6,3 +6,6 @@
 
 # local config
 /.costblame/
+
+# private notes — never committed
+/docs/

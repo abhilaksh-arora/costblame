@@ -6,28 +6,29 @@
 <title>costblame</title>
 <style>
   :root {
-    --plane: #f9f9f7; --surface: #ffffff; --surface2: #f4f3ef; --surface3: #ecebe5;
-    --ink: #0b0b0b; --ink2: #52514e; --muted: #8a8883;
-    --grid: #e7e6df; --baseline: #cfceC4; --ring: rgba(11,11,11,.09);
-    --seq: #2a78d6; --seq-strong: #1c5cab; --seq-wash: rgba(42,120,214,.13);
-    --good: #006300; --good-solid: #0ca30c;
-    --p-claude: #2a78d6; --p-codex: #eda100; --p-gemini: #4a3aa7; --p-other: #8a8883;
-    --shadow-sm: 0 1px 2px rgba(11,11,11,.04);
-    --shadow: 0 1px 3px rgba(11,11,11,.05), 0 8px 24px -8px rgba(11,11,11,.10);
-    --shadow-lg: 0 2px 6px rgba(11,11,11,.06), 0 18px 40px -12px rgba(11,11,11,.16);
-    --r: 16px; --r-sm: 11px;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --plane: #f5f0e3; --surface: #fdfbf5; --surface2: #efe6d2; --surface3: #e6dabd;
+    --ink: #2a2420; --ink2: #6b5d47; --muted: #998a6d;
+    --grid: #e6dbbf; --baseline: #d6c6a0; --ring: rgba(42,36,32,.11);
+    --seq: #a15f2c; --seq-strong: #7c4820; --seq-wash: rgba(161,95,44,.15);
+    --good: #4a6b32; --good-solid: #5c7a3f; --bad: #a23c2e;
+    --p-claude: #a15f2c; --p-codex: #5c7a6e; --p-gemini: #7a5a7e; --p-other: #998a6d;
+    --shadow-sm: 0 1px 2px rgba(42,36,32,.05);
+    --shadow: 0 1px 3px rgba(42,36,32,.06), 0 8px 24px -8px rgba(42,36,32,.12);
+    --shadow-lg: 0 2px 6px rgba(42,36,32,.08), 0 18px 40px -12px rgba(42,36,32,.18);
+    --r: 14px; --r-sm: 10px;
   }
   :root[data-theme="dark"], :root:not([data-theme="light"]) {
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --plane: #0b0b0c; --surface: #171718; --surface2: #202021; --surface3: #29292a;
-      --ink: #f7f7f5; --ink2: #c3c2b7; --muted: #8a8883;
-      --grid: #29292a; --baseline: #3a3a38; --ring: rgba(255,255,255,.10);
-      --seq: #3987e5; --seq-strong: #5598e7; --seq-wash: rgba(57,135,229,.17);
-      --good: #0ca30c; --good-solid: #0ca30c;
-      --p-claude: #3987e5; --p-codex: #c98500; --p-gemini: #9085e9; --p-other: #8a8883;
+      --plane: #171209; --surface: #201a11; --surface2: #2b2316; --surface3: #392e1c;
+      --ink: #f3e9d6; --ink2: #cbb999; --muted: #98876a;
+      --grid: #2f2617; --baseline: #473a24; --ring: rgba(255,244,222,.09);
+      --seq: #d68a4a; --seq-strong: #e8a05e; --seq-wash: rgba(214,138,74,.18);
+      --good: #83a85e; --good-solid: #83a85e; --bad: #d97a63;
+      --p-claude: #d68a4a; --p-codex: #86a68f; --p-gemini: #ab8bae; --p-other: #98876a;
       --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
       --shadow: 0 1px 3px rgba(0,0,0,.4), 0 10px 30px -10px rgba(0,0,0,.5);
       --shadow-lg: 0 2px 8px rgba(0,0,0,.5), 0 24px 50px -16px rgba(0,0,0,.6);
@@ -35,12 +36,12 @@
     }
   }
   :root[data-theme="dark"] {
-    --plane: #0b0b0c; --surface: #171718; --surface2: #202021; --surface3: #29292a;
-    --ink: #f7f7f5; --ink2: #c3c2b7; --muted: #8a8883;
-    --grid: #29292a; --baseline: #3a3a38; --ring: rgba(255,255,255,.10);
-    --seq: #3987e5; --seq-strong: #5598e7; --seq-wash: rgba(57,135,229,.17);
-    --good: #0ca30c; --good-solid: #0ca30c;
-    --p-claude: #3987e5; --p-codex: #c98500; --p-gemini: #9085e9; --p-other: #8a8883;
+    --plane: #171209; --surface: #201a11; --surface2: #2b2316; --surface3: #392e1c;
+    --ink: #f3e9d6; --ink2: #cbb999; --muted: #98876a;
+    --grid: #2f2617; --baseline: #473a24; --ring: rgba(255,244,222,.09);
+    --seq: #d68a4a; --seq-strong: #e8a05e; --seq-wash: rgba(214,138,74,.18);
+    --good: #83a85e; --good-solid: #83a85e; --bad: #d97a63;
+    --p-claude: #d68a4a; --p-codex: #86a68f; --p-gemini: #ab8bae; --p-other: #98876a;
     --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
     --shadow: 0 1px 3px rgba(0,0,0,.4), 0 10px 30px -10px rgba(0,0,0,.5);
     --shadow-lg: 0 2px 8px rgba(0,0,0,.5), 0 24px 50px -16px rgba(0,0,0,.6);
@@ -52,9 +53,9 @@
   body {
     margin: 0; color: var(--ink);
     background:
-      radial-gradient(1100px 460px at 88% -8%, color-mix(in srgb, var(--seq) 9%, transparent), transparent 60%),
+      radial-gradient(1100px 460px at 88% -8%, color-mix(in srgb, var(--seq) 8%, transparent), transparent 60%),
       var(--plane);
-    font: 14px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 13.5px/1.6 var(--mono);
     min-height: 100vh;
   }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 96px; }
@@ -76,12 +77,13 @@
     display: grid; place-items: center;
   }
   .brand .mark svg { width: 15px; height: 15px; color: #fff; }
-  .brand h1 { font-size: 16px; font-weight: 680; margin: 0; letter-spacing: -.02em; }
-  .brand .scope { color: var(--muted); font-size: 12.5px; margin-top: 1px; }
+  .brand h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+  .brand .tag { color: var(--muted); font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; margin-top: 2px; }
+  .scope { color: var(--muted); font-size: 12px; margin-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .spacer { flex: 1; }
   .iconbtn, button.act {
-    font: inherit; font-weight: 560; color: var(--ink2); background: var(--surface);
-    border: 1px solid var(--ring); border-radius: 10px; cursor: pointer;
+    font: inherit; font-weight: 600; color: var(--ink2); background: var(--surface);
+    border: 1px solid var(--ring); border-radius: 999px; cursor: pointer;
     display: inline-flex; align-items: center; gap: 7px; transition: .16s;
     box-shadow: var(--shadow-sm);
   }
@@ -92,6 +94,20 @@
   #refresh.spin svg { animation: spin .7s linear; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ---------- loading overlay ---------- */
+  .loading-overlay {
+    position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--plane) 55%, transparent); backdrop-filter: blur(2px);
+    opacity: 0; pointer-events: none; transition: opacity .15s;
+  }
+  .loading-overlay.show { opacity: 1; pointer-events: auto; }
+  .loading-box {
+    background: var(--surface); border: 1px solid var(--ring); border-radius: var(--r-sm);
+    box-shadow: var(--shadow-lg); padding: 14px 20px; display: flex; align-items: center; gap: 11px;
+    color: var(--ink2); font-weight: 600; font-size: 12.5px;
+  }
+  .spinner { width: 15px; height: 15px; border-radius: 50%; flex: none; border: 2px solid var(--ring); border-top-color: var(--seq); animation: spin .7s linear infinite; }
+
   /* ---------- hero ---------- */
   .hero {
     background: var(--surface); border: 1px solid var(--ring); border-radius: var(--r);
@@ -101,8 +117,8 @@
     content: ""; position: absolute; right: -60px; top: -60px; width: 260px; height: 260px;
     background: radial-gradient(circle, var(--seq-wash), transparent 68%); pointer-events: none;
   }
-  .eyebrow { color: var(--muted); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; }
-  .hero .figure { font-size: 52px; font-weight: 730; letter-spacing: -.04em; line-height: 1.02; margin: 6px 0 2px; }
+  .eyebrow { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+  .hero .figure { font-size: 48px; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; margin: 8px 0 2px; }
   .hero .figure .cents { color: var(--muted); font-weight: 640; font-size: .62em; letter-spacing: -.02em; }
   .planline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
   .chip {
@@ -124,9 +140,53 @@
 
   /* ---------- section shell ---------- */
   .panel { background: var(--surface); border: 1px solid var(--ring); border-radius: var(--r); box-shadow: var(--shadow); margin-bottom: 22px; }
-  .phd { display: flex; align-items: baseline; justify-content: space-between; padding: 18px 22px 4px; }
-  .phd h2 { font-size: 13.5px; font-weight: 660; margin: 0; letter-spacing: -.01em; }
-  .phd .hint { color: var(--muted); font-size: 12px; }
+  .phd { display: flex; align-items: baseline; justify-content: space-between; padding: 18px 22px 6px; }
+  .phd h2 { font-size: 11px; font-weight: 700; margin: 0; letter-spacing: .09em; text-transform: uppercase; color: var(--ink2); }
+  .phd .hint { color: var(--muted); font-size: 11.5px; }
+  .ov-div { border-top: 1px solid var(--ring); }
+
+  /* ---------- overview hero (nested, no own border/shadow) ---------- */
+  .ov-top { padding: 26px 28px 4px; position: relative; overflow: hidden; }
+  .ov-top::after {
+    content: ""; position: absolute; right: -60px; top: -60px; width: 260px; height: 260px;
+    background: radial-gradient(circle, var(--seq-wash), transparent 68%); pointer-events: none;
+  }
+
+  /* ---------- ROI callout ---------- */
+  .roi-wrap { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; padding: 6px 22px 20px; }
+  @media (max-width: 760px) { .roi-wrap { grid-template-columns: 1fr; } }
+  .roi-box { background: var(--surface2); border: 1px solid var(--ring); border-left: 3px solid var(--seq); border-radius: 12px; padding: 18px 20px; }
+  .roi-box .lbl { color: var(--seq-strong); font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+  .roi-box hr { border: none; border-top: 2px solid var(--seq); width: 26px; margin: 11px 0 12px; }
+  .roi-box p { margin: 0; line-height: 1.6; }
+  .roi-box .fine { color: var(--muted); font-size: 11.5px; margin-top: 13px; }
+  .statcol { display: flex; flex-direction: column; gap: 14px; }
+  .statcol .s .k { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+  .statcol .s .v { font-size: 17px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- code-impact top row: dual bar + mini stats ---------- */
+  .impact-top { display: flex; flex-wrap: wrap; gap: 24px; padding: 8px 22px 6px; }
+  .impact-top .dualbar { flex: 1 1 300px; }
+  .impact-mini { display: flex; gap: 22px; flex: 0 0 auto; }
+  .im { padding-right: 20px; border-right: 1px solid var(--grid); }
+  .im:last-child { padding-right: 0; border-right: none; }
+  .im .v { font-size: 27px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .im .k { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+
+  /* ---------- dual/diverging bar & meter (bar-chart marks) ---------- */
+  .dualbar-row { display: grid; grid-template-columns: 62px 1fr 56px; align-items: center; gap: 10px; margin-top: 8px; }
+  .dualbar-row:first-child { margin-top: 0; }
+  .dualbar-row .lbl { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .dualbar-row .track { height: 10px; border-radius: 5px; background: var(--surface3); overflow: hidden; }
+  .dualbar-row .track i { display: block; height: 100%; border-radius: 5px; }
+  .dualbar-row .val { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .dualbar-row .val.add { color: var(--good); }
+  .dualbar-row .val.rem { color: var(--bad); }
+  .meter .mhead { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+  .meter .mhead b { color: var(--ink); font-weight: 700; font-size: 12.5px; text-transform: none; letter-spacing: 0; }
+  .meter .mtrack { height: 10px; border-radius: 5px; background: var(--surface3); overflow: hidden; }
+  .meter .mtrack i { display: block; height: 100%; border-radius: 5px; background: var(--seq); }
+  .capnote { color: var(--muted); font-size: 11px; margin-top: 5px; }
 
   /* ---------- provider filter bar ---------- */
   .filterrow { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -198,6 +258,11 @@
   .msub { color: var(--muted); font-size: 11px; margin-top: 3px; font-variant-numeric: tabular-nums; }
   .mbar { height: 5px; border-radius: 3px; background: var(--surface3); overflow: hidden; margin-top: 7px; }
   .mbar i { display: block; height: 100%; border-radius: 3px; }
+  .seeall {
+    font: inherit; font-size: 11.5px; font-weight: 600; color: var(--seq-strong);
+    background: none; border: none; padding: 10px 0 2px; cursor: pointer; width: 100%; text-align: left;
+  }
+  .seeall:hover { text-decoration: underline; }
 
   .dbars { display: flex; align-items: flex-end; gap: 3px; height: 92px; margin-top: 4px; border-bottom: 1px solid var(--baseline); }
   .dbars .d { flex: 1 1 0; max-width: 20px; min-width: 3px; background: linear-gradient(180deg, var(--seq), var(--seq-strong)); border-radius: 3px 3px 0 0; opacity: .9; transition: opacity .1s; }
@@ -222,8 +287,9 @@
   <header>
     <span class="brand">
       <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg></span>
-      <span><h1>costblame</h1><div class="scope" id="scope"></div></span>
+      <span><h1>costblame</h1><div class="tag">Dashboard</div></span>
     </span>
+    <div class="scope" id="scope"></div>
     <span class="spacer"></span>
     <button class="iconbtn" id="theme" title="Toggle theme" aria-label="Toggle theme"></button>
     <button class="act" id="refresh" title="Reload from current logs">
@@ -233,12 +299,12 @@
   </header>
 
   <div id="filterbar"></div>
-  <div class="hero" id="hero"></div>
-  <div class="tiles" id="tiles"></div>
+  <div id="overview"></div>
   <div id="body"></div>
   <div class="meta" id="meta"></div>
 </div>
 <div id="tip"></div>
+<div class="loading-overlay" id="loadingOverlay"><div class="loading-box"><span class="spinner"></span>Loading report…</div></div>
 
 <script>
 const $ = (s) => document.querySelector(s);
@@ -274,64 +340,130 @@ const PROV = { claude: "var(--p-claude)", codex: "var(--p-codex)", gemini: "var(
 const provColor = (n) => PROV[n] || "var(--p-other)";
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/* ---------- hero ---------- */
-function renderHero(rep) {
-  if (FILTER !== "all") return renderHeroProvider(rep);
-  const total = rep.totals.cost;
-  let plan = "";
-  if (rep.plan) {
-    plan = `<div class="planline">
-      <span class="chip good">▲ ${rep.plan.multiplier.toFixed(1)}× your plan</span>
-      <span class="chip ghost">${cap(rep.plan.name)} · ${rep.plan.price_label}</span>
-    </div>
-    <div class="cap">Your <b>Claude</b> usage alone is <b>${money(rep.plan.api_cost)}</b> at API rates — ${rep.plan.multiplier.toFixed(1)}× the flat ${rep.plan.price_label} you actually pay. The figure above is total value consumed across all providers at pay-as-you-go rates; on a subscription it's ROI, not a bill.</div>`;
-  } else {
-    plan = `<div class="planline"><span class="chip ghost">API / pay-as-you-go</span></div>
-      <div class="cap">Estimated API list-price cost across all providers. Run <code>costblame configure</code> to compare it against a subscription.</div>`;
-  }
-  $("#hero").innerHTML = `
-    <div class="eyebrow">Total value consumed · at API list price</div>
-    <div class="figure">${moneyRich(total)}</div>
-    ${plan}`;
+/* ---------- bar-chart marks: dual bar (diverging) & meter ---------- */
+function dualBarRow(label, val, colorVar, max, cls, sign) {
+  const pct = Math.max(2, Math.abs(val) / max * 100);
+  return `<div class="dualbar-row">
+    <span class="lbl">${label}</span>
+    <span class="track"><i style="width:${pct}%;background:${colorVar}"></i></span>
+    <span class="val ${cls}">${sign}${compact(Math.abs(val))}</span>
+  </div>`;
 }
-function renderHeroProvider(rep) {
-  const s = activeStat(rep);
-  const cost = s ? s.totals.cost : 0;
-  const share = rep.totals.cost ? (cost / rep.totals.cost * 100).toFixed(0) : 0;
-  let sub;
-  if (FILTER === "claude" && rep.plan) {
-    sub = `<div class="planline">
-      <span class="chip good" style="background:${provColor('claude')}">▲ ${rep.plan.multiplier.toFixed(1)}× your plan</span>
-      <span class="chip ghost">${cap(rep.plan.name)} · ${rep.plan.price_label}</span>
-    </div>
-    <div class="cap"><b>${cap(FILTER)}</b> spend at API rates — ${rep.plan.multiplier.toFixed(1)}× the flat ${rep.plan.price_label} you pay. ${share}% of your total across all providers.</div>`;
-  } else {
-    sub = `<div class="planline"><span class="chip ghost"><span class="d" style="width:8px;height:8px;border-radius:3px;background:${provColor(FILTER)}"></span>${cap(FILTER)} · API / pay-as-you-go</span></div>
-      <div class="cap"><b>${cap(FILTER)}</b> spend at API list price — billed on its own plan or key, not your Claude subscription. ${share}% of your total across all providers.</div>`;
-  }
-  $("#hero").innerHTML = `
-    <div class="eyebrow"><span class="d" style="display:inline-block;width:8px;height:8px;border-radius:3px;background:${provColor(FILTER)};margin-right:6px"></span>${cap(FILTER)} spend · at API list price</div>
-    <div class="figure">${moneyRich(cost)}</div>
-    ${sub}`;
+function meterBar(label, pct, valueLabel) {
+  return `<div class="meter">
+    <div class="mhead"><span>${label}</span><b>${valueLabel}</b></div>
+    <div class="mtrack"><i style="width:${Math.max(2, pct)}%"></i></div>
+  </div>`;
 }
 
-/* ---------- kpi tiles ---------- */
-function renderTiles(rep) {
+/* ---------- overview: hero + tiles + code impact + plan ROI, one panel ---------- */
+function renderOverview(rep) {
+  const filtered = FILTER !== "all";
+  const s = filtered ? activeStat(rep) : null;
+  const cost = filtered ? (s ? s.totals.cost : 0) : rep.totals.cost;
+  const share = filtered && rep.totals.cost ? (cost / rep.totals.cost * 100).toFixed(0) : 0;
+
+  const eyebrow = filtered
+    ? `<span class="d" style="display:inline-block;width:8px;height:8px;border-radius:3px;background:${provColor(FILTER)};margin-right:6px"></span>${cap(FILTER)} spend · at API list price`
+    : `Total value consumed · at API list price`;
+  const planLine = (!filtered && rep.plan) || (FILTER === "claude" && rep.plan)
+    ? `<div class="planline">
+        <span class="chip good"${filtered ? ` style="background:${provColor('claude')}"` : ""}>▲ ${rep.plan.multiplier.toFixed(1)}× your plan</span>
+        <span class="chip ghost">${cap(rep.plan.name)} · ${rep.plan.price_label}</span>
+      </div>`
+    : filtered
+      ? `<div class="planline"><span class="chip ghost">${cap(FILTER)} · API / pay-as-you-go · ${share}% of total</span></div>`
+      : `<div class="planline"><span class="chip ghost">API / pay-as-you-go</span></div>`;
+
   const view = projView(rep);
-  const t = FILTER === "all" ? rep.totals : (activeStat(rep) ? activeStat(rep).totals : {input:0,output:0,cache_create:0,cache_read:0,cost:0});
-  const sess = FILTER === "all" ? rep.sessions : (activeStat(rep) ? activeStat(rep).sessions : 0);
-  let first;
-  if (FILTER === "all") {
-    const provDots = (rep.providers || []).map(p => `<span class="d" style="background:${provColor(p.provider)}"></span>`).join("");
-    first = `<div class="tile"><div class="k">${provDots}Providers</div><div class="v">${(rep.providers||[]).length}</div><div class="sub">${(rep.providers||[]).map(p=>cap(p.provider)).join(" · ")}</div></div>`;
-  } else {
-    first = `<div class="tile"><div class="k"><span class="d" style="background:${provColor(FILTER)}"></span>Provider</div><div class="v">${cap(FILTER)}</div><div class="sub">filtered view</div></div>`;
-  }
-  $("#tiles").innerHTML = first +
+  const t = filtered ? (s ? s.totals : { input: 0, output: 0, cache_create: 0, cache_read: 0, cost: 0 }) : rep.totals;
+  const sess = filtered ? (s ? s.sessions : 0) : rep.sessions;
+  const firstTile = filtered
+    ? `<div class="tile"><div class="k"><span class="d" style="background:${provColor(FILTER)}"></span>Provider</div><div class="v">${cap(FILTER)}</div><div class="sub">filtered view</div></div>`
+    : `<div class="tile"><div class="k">${(rep.providers || []).map(p => `<span class="d" style="background:${provColor(p.provider)}"></span>`).join("")}Providers</div><div class="v">${(rep.providers || []).length}</div><div class="sub">${(rep.providers || []).map(p => cap(p.provider)).join(" · ")}</div></div>`;
+  const tiles = firstTile +
     `<div class="tile"><div class="k">Projects</div><div class="v">${view.length}</div></div>` +
     `<div class="tile"><div class="k">Sessions</div><div class="v">${sess}</div></div>` +
     `<div class="tile"><div class="k">Total tokens</div><div class="v">${tokens(totalTokens(t))}</div><div class="sub">${tokens(t.cache_read)} cache read</div></div>` +
     `<div class="tile"><div class="k">Output tokens</div><div class="v">${tokens(t.output)}</div></div>`;
+
+  const a = rep.activity;
+  const showActivity = (FILTER === "all" || FILTER === "claude") && a && (a.edits || a.tool_calls);
+  let impactHtml = "", roiHtml = "";
+
+  if (showActivity) {
+    const files = rep.files || [];
+    const churnHotspots = files.filter(f => f.edits > 1).length;
+    const cacheEff = cacheEfficiency(t);
+    const maxLR = Math.max(a.lines_added, a.lines_removed, 1);
+    const linesBars = `<div class="dualbar">
+        ${dualBarRow("Added", a.lines_added, "var(--good)", maxLR, "add", "+")}
+        ${dualBarRow("Removed", a.lines_removed, "var(--bad)", maxLR, "rem", "−")}
+      </div>`;
+    const mini = `<div class="impact-mini">
+        <div class="im"><div class="v">${files.length}</div><div class="k">Files touched</div></div>
+        <div class="im"><div class="v">${churnHotspots}</div><div class="k">Churn hotspots</div></div>
+      </div>`;
+    const tile2 = (k, v, sub) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div>${sub ? `<div class="sub">${sub}</div>` : ""}</div>`;
+    const impactTiles = [
+      a.edits ? tile2("Cost / edit", "$" + a.cost_per_edit.toFixed(3), `${compact(a.edits)} edits`) : "",
+      a.changed_lines ? tile2("Cost / 100 lines", "$" + a.cost_per_100_lines.toFixed(3), `${compact(a.changed_lines)} changed`) : "",
+      a.tool_calls ? tile2("Tool error rate", (a.tool_error_rate * 100).toFixed(1) + "%", `${compact(a.tool_calls)} calls`) : "",
+      tile2("Rework loops", a.rework_loops, "same file, same session"),
+      tile2("Corrections", a.corrections, "user pushback turns"),
+    ].join("");
+    impactHtml = `
+      <div class="ov-div"></div>
+      <div class="phd"><h2>Code impact, not token volume</h2><span class="hint">what the tokens bought</span></div>
+      <div class="impact-top">${linesBars}${mini}</div>
+      ${cacheEff != null ? `<div style="padding:2px 22px 14px">${meterBar("Cache efficiency · cache-read share of input", cacheEff, cacheEff.toFixed(0) + "%")}</div>` : ""}
+      <div class="tiles" style="margin:0;padding:4px 22px 20px">${impactTiles}</div>`;
+
+    const apiEq = cost;
+    const costPerEdit = a.edits ? a.cost_per_edit : null;
+    const plan = rep.plan;
+    const headline = plan
+      ? `You consumed <b>${money(apiEq)}</b> of API-equivalent tokens — <b>${plan.multiplier.toFixed(1)}×</b> your flat ${plan.price_label} ${cap(plan.name)} plan.`
+      : `You consumed <b>${money(apiEq)}</b> of API-equivalent tokens on an unconfigured plan.`;
+    const fine = plan
+      ? `${rep.sessions} session${rep.sessions === 1 ? "" : "s"} priced · ${money(rep.sessions ? apiEq / rep.sessions : 0)} / session`
+      : `Run <code>costblame configure</code> to compare this against a real plan.`;
+    const roiBars = plan
+      ? (() => {
+          const max = Math.max(apiEq, plan.monthly_usd, 1);
+          return `<div class="dualbar" style="margin-top:14px">
+            <div class="dualbar-row"><span class="lbl">API equiv</span><span class="track"><i style="width:${Math.max(2, apiEq / max * 100)}%;background:var(--seq)"></i></span><span class="val">${money(apiEq)}</span></div>
+            <div class="dualbar-row"><span class="lbl">Plan</span><span class="track"><i style="width:${Math.max(2, plan.monthly_usd / max * 100)}%;background:var(--seq)"></i></span><span class="val">${money(plan.monthly_usd)}/mo</span></div>
+          </div>`;
+        })()
+      : "";
+    roiHtml = `
+      <div class="ov-div"></div>
+      <div class="phd"><h2>Cost intelligence & plan ROI</h2><span class="hint">API-equivalent estimate</span></div>
+      <div class="roi-wrap">
+        <div class="roi-box">
+          <div class="lbl">Return on plan</div>
+          <hr>
+          <p>${headline}</p>
+          <div class="fine">${fine}</div>
+        </div>
+        <div class="statcol">
+          <div class="s"><div class="k">Cost / edit</div><div class="v">${costPerEdit != null ? "$" + costPerEdit.toFixed(3) : "–"}</div></div>
+          ${roiBars}
+        </div>
+      </div>`;
+  }
+
+  return `<div class="panel">
+    <div class="ov-top">
+      <div class="eyebrow">${eyebrow}</div>
+      <div class="figure">${moneyRich(cost)}</div>
+      ${planLine}
+    </div>
+    <div class="tiles" style="padding:16px 22px 4px;margin-bottom:8px">${tiles}</div>
+    ${impactHtml}
+    ${roiHtml}
+  </div>`;
 }
 
 /* ---------- merged daily series ---------- */
@@ -548,6 +680,51 @@ function projectDetail(p) {
   </div></div>`;
 }
 
+/* ---------- code activity (Claude-only: edits, files, tools) ---------- */
+function cacheEfficiency(t) {
+  if (!t || (t.input + t.cache_read) <= 0) return null;
+  return t.cache_read / (t.input + t.cache_read) * 100;
+}
+function fileRow(f, maxChanged) {
+  const changed = f.lines_added + f.lines_removed;
+  const name = f.path.split("/").pop();
+  return `<div class="mrow" data-tip="${f.path}">
+    <div class="mtop"><span class="nm">${name}</span>
+      <span class="amt">${f.edits} edit${f.edits === 1 ? "" : "s"}</span></div>
+    <div class="msub">+${f.lines_added} / -${f.lines_removed} · ${f.sessions} session${f.sessions === 1 ? "" : "s"}</div>
+    <div class="mbar"><i style="width:${Math.max(2, changed / maxChanged * 100)}%;background:var(--seq)"></i></div>
+  </div>`;
+}
+function toolRow(t, maxCalls) {
+  const errPct = t.calls ? (t.errors / t.calls * 100) : 0;
+  const errNote = t.errors > 0 ? ` · ${errPct.toFixed(0)}% errored` : "";
+  return `<div class="mrow">
+    <div class="mtop"><span class="nm">${t.name}</span><span class="amt">${t.calls}</span></div>
+    <div class="msub">${t.calls} call${t.calls === 1 ? "" : "s"}${errNote}</div>
+    <div class="mbar"><i style="width:${Math.max(2, t.calls / maxCalls * 100)}%;background:${t.errors > 0 ? "var(--bad)" : "var(--seq)"}"></i></div>
+  </div>`;
+}
+let filesExpanded = false, toolsExpanded = false;
+function renderFilesTools(rep) {
+  if (FILTER !== "all" && FILTER !== "claude") return ""; // edit/tool data is Claude-only
+  const files = rep.files || [], tools = rep.tools || [];
+  if (!files.length && !tools.length) return "";
+
+  const maxChanged = Math.max(...files.map(f => f.lines_added + f.lines_removed), 1);
+  const maxCalls = Math.max(...tools.map(x => x.calls), 1);
+  const seeAll = (id, total, expanded) => total > 5
+    ? `<button class="seeall" data-toggle="${id}">${expanded ? "Show less" : `See all ${total}`}</button>` : "";
+  const filesShown = filesExpanded ? files : files.slice(0, 5);
+  const toolsShown = toolsExpanded ? tools : tools.slice(0, 5);
+  const filesCard = files.length ? `<div class="dcard"><div class="subh">Most-touched files</div>${filesShown.map(f => fileRow(f, maxChanged)).join("")}${seeAll("files", files.length, filesExpanded)}</div>` : "";
+  const toolsCard = tools.length ? `<div class="dcard"><div class="subh">Tool calls</div>${toolsShown.map(x => toolRow(x, maxCalls)).join("")}${seeAll("tools", tools.length, toolsExpanded)}</div>` : "";
+
+  return `<div class="panel">
+    <div class="phd"><h2>Files & tool calls</h2><span class="hint">Claude only</span></div>
+    <div class="dgrid" style="padding:0 22px 20px">${filesCard}${toolsCard}</div>
+  </div>`;
+}
+
 /* ---------- projects panel ---------- */
 let expanded = new Set();
 function renderProjects(rep) {
@@ -590,9 +767,8 @@ function render(rep) {
   $("#meta").textContent = "updated " + new Date(rep.generated_at).toLocaleString() + " · pricing " + rep.pricing;
 
   renderFilterBar(rep); wireFilterBar(rep);
-  renderHero(rep);
-  renderTiles(rep);
-  $("#body").innerHTML = renderTimeChart(rep) + renderProviders(rep) + renderProjects(rep);
+  $("#overview").innerHTML = renderOverview(rep);
+  $("#body").innerHTML = renderTimeChart(rep) + renderProviders(rep) + renderProjects(rep) + renderFilesTools(rep);
   updateTlLegend(rep); drawTimeChart(rep);
 
   // wire interactions
@@ -601,6 +777,13 @@ function render(rep) {
       if (e.target.closest(".detail")) return;
       const k = decodeURIComponent(row.dataset.key);
       expanded.has(k) ? expanded.delete(k) : expanded.add(k);
+      render(rep);
+    });
+  });
+  document.querySelectorAll("[data-toggle]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.toggle === "files") filesExpanded = !filesExpanded;
+      else toolsExpanded = !toolsExpanded;
       render(rep);
     });
   });
@@ -632,12 +815,15 @@ function initTheme() {
 /* ---------- load ---------- */
 async function load() {
   const btn = $("#refresh"); btn.classList.add("spin"); setTimeout(() => btn.classList.remove("spin"), 700);
+  $("#loadingOverlay").classList.add("show");
   try {
     const res = await fetch("/api/report");
     if (!res.ok) throw new Error(res.status);
     render(await res.json());
   } catch (e) {
     $("#body").innerHTML = '<div class="panel"><div class="empty">Failed to load report. Is <code>costblame serve</code> running?</div></div>';
+  } finally {
+    $("#loadingOverlay").classList.remove("show");
   }
 }
 

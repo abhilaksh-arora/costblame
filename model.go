@@ -32,11 +32,70 @@ func (t *Totals) addTotals(s Totals) {
 
 // BranchStat is the spend attributed to one branch within a project.
 type BranchStat struct {
-	Branch   string    `json:"branch"`
-	Totals   Totals    `json:"totals"`
-	Sessions int       `json:"sessions"`
-	First    time.Time `json:"first"`
-	Last     time.Time `json:"last"`
+	Branch   string        `json:"branch"`
+	Totals   Totals        `json:"totals"`
+	Sessions int           `json:"sessions"`
+	First    time.Time     `json:"first"`
+	Last     time.Time     `json:"last"`
+	Activity ActivityStats `json:"activity"`
+}
+
+// ActivityStats is code-impact and workflow signal derived from Claude's
+// Edit/MultiEdit/Write/NotebookEdit tool calls and user turns — Claude-only,
+// since Codex and Gemini logs don't carry the same tool payloads. ReworkLoops
+// and Corrections are rolled up at project/report level only (0 on a
+// BranchStat), since they're session-scoped signals a per-branch split would
+// just be double-counting across an already-small sample.
+type ActivityStats struct {
+	Edits           int     `json:"edits"`
+	LinesAdded      int     `json:"lines_added"`
+	LinesRemoved    int     `json:"lines_removed"`
+	ChangedLines    int     `json:"changed_lines"`
+	CostPerEdit     float64 `json:"cost_per_edit,omitempty"`
+	CostPer100Lines float64 `json:"cost_per_100_lines,omitempty"`
+	ReworkLoops     int     `json:"rework_loops"`
+	Corrections     int     `json:"corrections"`
+	ToolCalls       int     `json:"tool_calls"`
+	ToolErrors      int     `json:"tool_errors"`
+	ToolErrorRate   float64 `json:"tool_error_rate,omitempty"`
+}
+
+func (a *ActivityStats) addLines(added, removed int) {
+	a.Edits++
+	a.LinesAdded += added
+	a.LinesRemoved += removed
+	a.ChangedLines += added + removed
+}
+
+// finalize derives the cost- and rate-based fields once the raw counts (and
+// the cost they should be priced against) are known.
+func (a *ActivityStats) finalize(cost float64) {
+	if a.Edits > 0 {
+		a.CostPerEdit = cost / float64(a.Edits)
+	}
+	if a.ChangedLines > 0 {
+		a.CostPer100Lines = cost / float64(a.ChangedLines) * 100
+	}
+	if a.ToolCalls > 0 {
+		a.ToolErrorRate = float64(a.ToolErrors) / float64(a.ToolCalls)
+	}
+}
+
+// FileStat is one file's edit activity within a project, for a "most-touched
+// files" view.
+type FileStat struct {
+	Path         string `json:"path"`
+	Edits        int    `json:"edits"`
+	LinesAdded   int    `json:"lines_added"`
+	LinesRemoved int    `json:"lines_removed"`
+	Sessions     int    `json:"sessions"`
+}
+
+// ToolStat is call/error counts for one tool name (Edit, Bash, Read, ...).
+type ToolStat struct {
+	Name   string `json:"name"`
+	Calls  int    `json:"calls"`
+	Errors int    `json:"errors"`
 }
 
 // DayBucket is one day's spend (UTC), for timelines.
@@ -71,6 +130,9 @@ type ProjectReport struct {
 	Providers []ProviderStat `json:"providers"` // per-provider split, cost desc
 	Branches  []BranchStat   `json:"branches"`  // per-branch (Claude only carries a real branch)
 	Daily     []DayBucket    `json:"daily"`
+	Activity  ActivityStats  `json:"activity"`        // Claude-only code-impact + workflow signals
+	Files     []FileStat     `json:"files,omitempty"` // most-touched files, top 15, edits desc
+	Tools     []ToolStat     `json:"tools,omitempty"` // tool call/error counts, calls desc
 }
 
 // PlanInfo frames the total API-equivalent cost against a flat subscription
@@ -93,6 +155,9 @@ type Report struct {
 	Providers   []ProviderStat  `json:"providers"`          // spend split by provider, cost desc
 	Timeline    []TimelinePoint `json:"timeline,omitempty"` // daily cost per provider, date asc
 	Projects    []ProjectReport `json:"projects"`
+	Activity    ActivityStats   `json:"activity"`        // Claude-only, summed across all included projects
+	Files       []FileStat      `json:"files,omitempty"` // most-touched files across all included projects, top 15
+	Tools       []ToolStat      `json:"tools,omitempty"` // tool call/error counts across all included projects
 }
 
 // providerCost returns the total cost attributed to one provider.
