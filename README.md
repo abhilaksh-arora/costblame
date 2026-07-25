@@ -65,7 +65,15 @@ costblame serve          # web dashboard → http://127.0.0.1:7777 (pass --all f
 ```
 
 Running `costblame` with no arguments prints a short reminder of these instead
-of a report — use `sync` for that. A few more commands and flags:
+of a report — use `sync` for that. `--repo` also repeats, so you can scope to
+an exact handful of projects instead of one or "every project you own":
+
+```sh
+costblame sync --repo ~/work/api --repo ~/work/web   # just these two, nothing else
+costblame serve --repo ~/work/api --repo ~/work/web  # same, in the dashboard
+```
+
+A few more commands and flags:
 
 ```sh
 costblame sync --all --by day    # spend bucketed by day or week, across every project

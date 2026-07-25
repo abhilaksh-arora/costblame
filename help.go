@@ -35,7 +35,8 @@ COMMANDS
   costblame help            this text
 
 FLAGS (sync)
-  --repo DIR       path to the repo (default: current directory; ignored with --all)
+  --repo DIR       a repo to include (default: current directory; ignored with --all)
+                   repeatable — --repo a --repo b scopes to exactly those, no others
   --all            aggregate every project under ~/.claude/projects
   --json           emit the full report as JSON
   --by day|week    bucket spend by time instead of branch/project
@@ -43,7 +44,8 @@ FLAGS (sync)
   --pricing FILE   override the built-in pricing table
 
 FLAGS (serve)
-  --repo DIR       scope the dashboard to one repo (default: current directory)
+  --repo DIR       a repo to scope the dashboard to (default: current directory)
+                   repeatable — --repo a --repo b shows exactly those, no others
   --all            scope the dashboard to every project
   --pricing FILE   override the built-in pricing table
   --raw            drop the plan comparison

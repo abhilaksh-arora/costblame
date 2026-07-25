@@ -9,9 +9,10 @@
 // Usage:
 //
 //	costblame                                    a short intro (run 'sync' for real output)
-//	costblame sync [--all] [--repo DIR] [--json] [--by day|week] [--pricing FILE]
-//	                                              spend for this project, or --all for every one
-//	costblame serve [--repo DIR] [--pricing FILE] [--port N]
+//	costblame sync [--all] [--repo DIR ...] [--json] [--by day|week] [--pricing FILE]
+//	                                              spend for this project, an explicit list
+//	                                              (--repo can repeat), or --all for every one
+//	costblame serve [--repo DIR ...] [--pricing FILE] [--port N]
 //	costblame init                               (alias of configure — set your plan)
 //	costblame update                             update to the latest release
 //	costblame uninstall                          (remove the binary + ~/.costblame config)
@@ -26,7 +27,19 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
+
+// repoList is a --repo flag that can be given more than once — e.g.
+// `costblame sync --repo devTab --repo costblame` scopes to exactly those
+// two, instead of one repo (a single --repo, or none) or every repo (--all).
+type repoList []string
+
+func (r *repoList) String() string   { return strings.Join(*r, ",") }
+func (r *repoList) Set(v string) error {
+	*r = append(*r, v)
+	return nil
+}
 
 func main() {
 	if len(os.Args) == 1 {
@@ -66,7 +79,8 @@ func main() {
 
 func runReport(args []string) {
 	fs := flag.NewFlagSet("costblame", flag.ExitOnError)
-	repo := fs.String("repo", ".", "path to the repo (defaults to cwd; ignored with --all)")
+	var repos repoList
+	fs.Var(&repos, "repo", "path to a repo (repeatable: --repo a --repo b); defaults to the current directory; ignored with --all")
 	all := fs.Bool("all", false, "aggregate every project under ~/.claude/projects")
 	asJSON := fs.Bool("json", false, "emit the full report as JSON")
 	by := fs.String("by", "", "instead of per-branch/project, bucket by time: day|week")
@@ -80,7 +94,8 @@ func runReport(args []string) {
 	}
 
 	var projects []ProjectData
-	if *all {
+	switch {
+	case *all:
 		projects, err = CollectAll()
 		if err != nil {
 			fatal("scanning projects: %v", err)
@@ -88,14 +103,26 @@ func runReport(args []string) {
 		if len(projects) == 0 {
 			fatal("no project logs found under ~/.claude/projects")
 		}
-	} else {
-		pd, err := CollectRepo(*repo)
-		if err != nil {
-			if os.IsNotExist(err) {
-				dir, _ := ProjectDir(*repo)
-				fatal("no Claude session folder for this repo\n  expected: %s\n  (has Claude Code been run in %s?  try --all)", dir, *repo)
+	case len(repos) > 0:
+		for _, r := range repos {
+			pd, perr := CollectRepo(r)
+			if perr != nil {
+				if os.IsNotExist(perr) {
+					dir, _ := ProjectDir(r)
+					fatal("no Claude session folder for %q\n  expected: %s\n  (has Claude Code been run there?)", r, dir)
+				}
+				fatal("reading sessions for %q: %v", r, perr)
 			}
-			fatal("reading sessions: %v", err)
+			projects = append(projects, pd)
+		}
+	default:
+		pd, perr := CollectRepo(".")
+		if perr != nil {
+			if os.IsNotExist(perr) {
+				dir, _ := ProjectDir(".")
+				fatal("no Claude session folder for this repo\n  expected: %s\n  (has Claude Code been run here?  try --all)", dir)
+			}
+			fatal("reading sessions: %v", perr)
 		}
 		projects = []ProjectData{pd}
 	}
@@ -141,7 +168,7 @@ func runReport(args []string) {
 			fatal("--by must be 'day' or 'week', got %q", *by)
 		}
 		renderTimeTable(os.Stdout, rep, *by)
-	case *all:
+	case *all || len(repos) > 1:
 		renderProjectTable(os.Stdout, rep)
 	default:
 		renderBranchTable(os.Stdout, rep.Projects[0])

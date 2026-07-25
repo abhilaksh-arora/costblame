@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 //go:embed dashboard.html
@@ -18,7 +19,8 @@ var dashboardHTML []byte
 // — it binds to localhost and serves only its own embedded HTML.
 func runServe(args []string) {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
-	repo := fs.String("repo", ".", "repo to scope to (defaults to the current directory)")
+	var repos repoList
+	fs.Var(&repos, "repo", "repo to scope to (repeatable: --repo a --repo b); defaults to the current directory")
 	all := fs.Bool("all", false, "show every project under ~/.claude etc., not just this repo")
 	pricingPath := fs.String("pricing", "", "path to a pricing.json overriding the embedded defaults")
 	raw := fs.Bool("raw", false, "show raw API-equivalent cost only, without the plan comparison")
@@ -33,14 +35,23 @@ func runServe(args []string) {
 
 	build := func() (Report, error) {
 		var projects []ProjectData
-		if *all {
+		switch {
+		case *all:
 			ps, err := CollectAll()
 			if err != nil {
 				return Report{}, err
 			}
 			projects = ps
-		} else {
-			pd, err := CollectRepo(*repo)
+		case len(repos) > 0:
+			for _, r := range repos {
+				pd, err := CollectRepo(r)
+				if err != nil {
+					return Report{}, err
+				}
+				projects = append(projects, pd)
+			}
+		default:
+			pd, err := CollectRepo(".")
 			if err != nil {
 				return Report{}, err
 			}
@@ -74,11 +85,16 @@ func runServe(args []string) {
 
 	addr := fmt.Sprintf("127.0.0.1:%d", *port)
 	scope := "all projects"
-	if !*all {
-		if abs, aerr := filepath.Abs(*repo); aerr == nil {
+	switch {
+	case *all:
+		// scope already set
+	case len(repos) > 0:
+		scope = strings.Join([]string(repos), ", ")
+	default:
+		if abs, aerr := filepath.Abs("."); aerr == nil {
 			scope = abs
 		} else {
-			scope = *repo
+			scope = "."
 		}
 	}
 	fmt.Fprintf(os.Stderr, "costblame dashboard (%s) → http://%s\n", scope, addr)
