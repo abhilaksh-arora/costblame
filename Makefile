@@ -27,7 +27,7 @@ dist: ## cross-compile release zips (macOS/Linux/Windows) into dist/
 	GOOS=linux   GOARCH=amd64 $(BUILD) -o dist/$(BIN)-linux-amd64 .
 	GOOS=linux   GOARCH=arm64 $(BUILD) -o dist/$(BIN)-linux-arm64 .
 	GOOS=windows GOARCH=amd64 $(BUILD) -o dist/$(BIN)-windows.exe .
-	@cd dist && for p in macos-arm64 macos-intel linux-amd64; do zip -qj $(BIN)-$$p.zip $(BIN)-$$p RUN.txt; done
+	@cd dist && for p in macos-arm64 macos-intel linux-amd64 linux-arm64; do zip -qj $(BIN)-$$p.zip $(BIN)-$$p RUN.txt; done
 	@cd dist && zip -qj $(BIN)-windows.zip $(BIN)-windows.exe RUN.txt
 	@echo "built dist/ zips"
 

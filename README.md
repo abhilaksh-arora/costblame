@@ -26,6 +26,14 @@ calculated.
 
 Go stdlib only, no dependencies.
 
+**Quickest — prebuilt binary via curl** (macOS/Linux; installs to `~/.local/bin`):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/abhilaksh-arora/costblame/main/install.sh | sh
+```
+
+**From a clone:**
+
 ```sh
 git clone https://github.com/abhilaksh-arora/costblame.git
 cd costblame
