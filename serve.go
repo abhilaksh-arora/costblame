@@ -33,6 +33,18 @@ func runServe(args []string) {
 	}
 	cfg := ensureConfig() // prompt once if interactive and unconfigured
 
+	// Bare `serve` (no --all, no --repo) joins the same synced set `sync`
+	// builds up, so a dashboard started from one repo doesn't stay locked to
+	// just that one for its whole lifetime — it's registered once, here, at
+	// startup, same as a `sync` run would.
+	if !*all && len(repos) == 0 {
+		if abs, aerr := absCwd(); aerr == nil {
+			if _, aerr := AddSynced(abs); aerr != nil {
+				fmt.Fprintf(os.Stderr, "warning: could not update synced list: %v\n", aerr)
+			}
+		}
+	}
+
 	build := func() (Report, error) {
 		var projects []ProjectData
 		switch {
@@ -51,11 +63,18 @@ func runServe(args []string) {
 				projects = append(projects, pd)
 			}
 		default:
-			pd, err := CollectRepo(".")
+			// Re-read the synced list on every request (not just at startup)
+			// so a `costblame sync`/`remove` run in another terminal while
+			// this server is up is reflected on the next Refresh.
+			list, err := LoadSynced()
 			if err != nil {
 				return Report{}, err
 			}
-			projects = []ProjectData{pd}
+			ps, err := projectsForSynced(list)
+			if err != nil {
+				return Report{}, err
+			}
+			projects = ps
 		}
 		rep := BuildReport(projects, pt, src)
 		attachPlan(&rep, cfg, *raw)
@@ -91,7 +110,9 @@ func runServe(args []string) {
 	case len(repos) > 0:
 		scope = strings.Join([]string(repos), ", ")
 	default:
-		if abs, aerr := filepath.Abs("."); aerr == nil {
+		if list, lerr := LoadSynced(); lerr == nil && len(list) > 0 {
+			scope = strings.Join(list, ", ")
+		} else if abs, aerr := filepath.Abs("."); aerr == nil {
 			scope = abs
 		} else {
 			scope = "."

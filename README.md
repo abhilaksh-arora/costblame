@@ -52,38 +52,46 @@ Remove it anytime with `costblame uninstall` (or `make uninstall`).
 
 ## Use
 
-There's nothing to set up per-project and nothing gets "saved" anywhere —
-costblame just reads the session logs Claude Code / Codex / Gemini already
-write locally and recomputes on every run. `sync` is the command that shows
-that:
+costblame doesn't write anything of its own except a small local memory of
+*which* repos you care about — it always recomputes the numbers fresh from
+the session logs Claude Code / Codex / Gemini already write locally. `sync`
+is the command that shows that memory:
 
 ```sh
-costblame init         # one-time: pick your plan, or skip
-costblame sync          # spend for the repo you're standing in
-costblame sync --all    # spend across every project you've used it in
-costblame serve          # web dashboard → http://127.0.0.1:7777 (pass --all for every project)
+costblame init      # one-time: pick your plan, or skip
+costblame sync        # add this repo to your synced set, show the union of it
+costblame sync --all  # spend across every project, synced or not
+costblame serve       # web dashboard → http://127.0.0.1:7777 (same synced set as sync)
 ```
 
-Running `costblame` with no arguments prints a short reminder of these instead
-of a report — use `sync` for that. `--repo` also repeats, so you can scope to
-an exact handful of projects instead of one or "every project you own":
+Run `costblame sync` once per repo you want tracked — each run *adds* that
+repo to the set, it doesn't replace what's already there, so syncing repo B
+after repo A shows both together, not just B. `costblame remove` (or
+`costblame synced` to see the current set) takes one back out:
 
 ```sh
-costblame sync --repo ~/work/api --repo ~/work/web   # just these two, nothing else
+costblame remove          # drop this repo from the synced set
+costblame remove ~/work/api  # or name one explicitly
+costblame synced             # list what's currently synced
+```
+
+Running `costblame` with no arguments prints a short reminder of all this
+instead of a report. `--repo` repeats for a one-off, non-persistent list
+that doesn't touch the synced set either way:
+
+```sh
+costblame sync --repo ~/work/api --repo ~/work/web   # just these two, right now
 costblame serve --repo ~/work/api --repo ~/work/web  # same, in the dashboard
 ```
 
-Or exclude a project permanently instead of picking the others every time —
-run this once, from inside it:
+Or exclude a project from `--all` specifically (it can still be synced or
+named directly) — run this once, from inside it:
 
 ```sh
 costblame ignore      # this repo drops out of --all / sync --all / serve --all
 costblame unignore    # undo
 costblame ignored     # what's currently excluded
 ```
-
-An ignored repo still shows up if you ask for it directly with `--repo`; it's
-only left out of the "everything" views.
 
 A few more commands and flags:
 

@@ -10,9 +10,13 @@
 //
 //	costblame                                    a short intro (run 'sync' for real output)
 //	costblame sync [--all] [--repo DIR ...] [--json] [--by day|week] [--pricing FILE]
-//	                                              spend for this project, an explicit list
-//	                                              (--repo can repeat), or --all for every one
+//	                                              bare: adds this repo to the synced set and
+//	                                              shows the union of it; --repo (repeatable) for
+//	                                              an explicit one-off list; --all for every repo
+//	costblame remove [DIR]                       take a repo out of the synced set (default: cwd)
+//	costblame synced                             list the synced set
 //	costblame serve [--repo DIR ...] [--pricing FILE] [--port N]
+//	                                              bare: same synced set as sync
 //	costblame ignore [DIR]                       drop a repo from --all views (default: cwd)
 //	costblame unignore [DIR]                     reverse ignore
 //	costblame ignored                            list what's ignored
@@ -68,13 +72,22 @@ func main() {
 	case "ignored":
 		runIgnored(os.Args[2:])
 		return
+	case "synced":
+		runSynced(os.Args[2:])
+		return
+	case "remove", "forget":
+		runForget(os.Args[2:])
+		return
 	case "sync":
 		// Same flags as the default report (--repo, --all, --json, ...); just
 		// the explicit verb that actually reads logs, so a bare `costblame`
 		// (no args at all) stays a no-op intro instead of silently scanning —
 		// the same reason people type a bare `node`/`git` just to check it's
-		// installed, not to run anything.
-		runReport(os.Args[2:])
+		// installed, not to run anything. Bare `sync` (no --all, no --repo)
+		// adds the current repo to a persistent set and shows the union of
+		// everything in it — a second `sync` somewhere else adds to that set
+		// rather than replacing it. `costblame remove` takes a repo back out.
+		runReport(os.Args[2:], true)
 		return
 	case "update":
 		runUpdate(os.Args[2:])
@@ -86,13 +99,13 @@ func main() {
 		runHelp(os.Args[2:])
 		return
 	}
-	runReport(os.Args[1:])
+	runReport(os.Args[1:], false)
 }
 
-func runReport(args []string) {
+func runReport(args []string, sync bool) {
 	fs := flag.NewFlagSet("costblame", flag.ExitOnError)
 	var repos repoList
-	fs.Var(&repos, "repo", "path to a repo (repeatable: --repo a --repo b); defaults to the current directory; ignored with --all")
+	fs.Var(&repos, "repo", "path to a repo (repeatable: --repo a --repo b); defaults to the synced set; ignored with --all")
 	all := fs.Bool("all", false, "aggregate every project under ~/.claude/projects")
 	asJSON := fs.Bool("json", false, "emit the full report as JSON")
 	by := fs.String("by", "", "instead of per-branch/project, bucket by time: day|week")
@@ -126,6 +139,19 @@ func runReport(args []string) {
 				fatal("reading sessions for %q: %v", r, perr)
 			}
 			projects = append(projects, pd)
+		}
+	case sync:
+		abs, aerr := absCwd()
+		if aerr != nil {
+			fatal("resolving current directory: %v", aerr)
+		}
+		list, aerr := AddSynced(abs)
+		if aerr != nil {
+			fatal("updating synced list: %v", aerr)
+		}
+		projects, err = projectsForSynced(list)
+		if err != nil {
+			fatal("reading sessions: %v", err)
 		}
 	default:
 		pd, perr := CollectRepo(".")
@@ -180,7 +206,7 @@ func runReport(args []string) {
 			fatal("--by must be 'day' or 'week', got %q", *by)
 		}
 		renderTimeTable(os.Stdout, rep, *by)
-	case *all || len(repos) > 1:
+	case *all || len(repos) > 1 || (sync && len(rep.Projects) > 1):
 		renderProjectTable(os.Stdout, rep)
 	default:
 		renderBranchTable(os.Stdout, rep.Projects[0])

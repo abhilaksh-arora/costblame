@@ -12,12 +12,12 @@ import "fmt"
 func runIntro() {
 	fmt.Print(`costblame — attribute your AI coding token spend across Claude Code, Codex, and Gemini CLI.
 
-  costblame sync       spend for this project (start here)
-  costblame sync --all spend across every project
-  costblame serve      open the local dashboard
-  costblame init       pick your plan (one-time)
-  costblame update     update to the latest version
-  costblame help       full command reference
+  costblame sync        add this project and show everything synced so far
+  costblame sync --all  spend across every project, synced or not
+  costblame serve       open the local dashboard (same synced set as sync)
+  costblame init        pick your plan (one-time)
+  costblame update      update to the latest version
+  costblame help        full command reference
 `)
 }
 
@@ -25,8 +25,11 @@ func runHelp(args []string) {
 	fmt.Print(`costblame — attribute your AI coding token spend across Claude Code, Codex, and Gemini CLI.
 
 COMMANDS
-  costblame sync [flags]    spend for this project (add --all for every project)
-  costblame serve [flags]   open the local dashboard
+  costblame sync [flags]    add this repo to the synced set, show the union of it
+                            (add --all for every project instead, synced or not)
+  costblame remove [DIR]    take a repo out of the synced set (default: current directory)
+  costblame synced          list the synced set
+  costblame serve [flags]   open the local dashboard (same synced set as sync)
   costblame ignore [DIR]    drop a repo from --all views (default: current directory)
   costblame unignore [DIR]  reverse ignore
   costblame ignored         list what's currently ignored
@@ -37,25 +40,31 @@ COMMANDS
   costblame version         print the installed version
   costblame help            this text
 
+sync/serve with no --all and no --repo remember every repo you've ever run
+them in bare, and always show the union of that set — run sync in a second
+repo and it adds to the set, it doesn't replace it. costblame remove takes
+one back out.
+
 FLAGS (sync)
-  --repo DIR       a repo to include (default: current directory; ignored with --all)
-                   repeatable — --repo a --repo b scopes to exactly those, no others
-  --all            aggregate every project under ~/.claude/projects
+  --repo DIR       a repo to include, instead of the synced set; ignored with --all
+                   repeatable — --repo a --repo b scopes to exactly those, no others,
+                   and doesn't touch the synced set either way
+  --all            aggregate every project under ~/.claude/projects, synced or not
   --json           emit the full report as JSON
   --by day|week    bucket spend by time instead of branch/project
   --raw            show API-equivalent cost only, no plan comparison
   --pricing FILE   override the built-in pricing table
 
 FLAGS (serve)
-  --repo DIR       a repo to scope the dashboard to (default: current directory)
+  --repo DIR       a repo to scope the dashboard to, instead of the synced set
                    repeatable — --repo a --repo b shows exactly those, no others
-  --all            scope the dashboard to every project
+  --all            scope the dashboard to every project, synced or not
   --pricing FILE   override the built-in pricing table
   --raw            drop the plan comparison
   --port N         localhost port (default 7777)
 
-Ignoring a repo only drops it from --all views; costblame sync --repo DIR
-still shows an ignored repo directly if you ask for it by name.
+Ignoring a repo only drops it from --all views; explicitly syncing it or
+naming it with --repo still shows it.
 
 Nothing leaves your machine. Full docs: https://github.com/abhilaksh-arora/costblame
 `)
