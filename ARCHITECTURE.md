@@ -40,6 +40,12 @@ stored under its own key in `~/.costblame/config.json`
 multi-provider support (a bare `{"plan": "pro", ...}`) is auto-migrated into
 `plans.claude` the first time it's read.
 
+The first-run auto-prompt (triggered by `sync`/`serve`, not `configure`) asks
+about one provider at a time, labeled "provider N of M" when there's more than
+one new provider to set up, with a `[0] Skip this and all remaining
+providers` shortcut — picking it saves every not-yet-asked provider as Skip
+too, so it isn't asked again next run.
+
 Catalogs (verified 2026-07-25 — check each provider's own pricing page if a
 number looks stale):
 

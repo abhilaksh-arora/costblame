@@ -202,9 +202,18 @@ func ensureConfig(wanted []string) *Config {
 		names[i] = providerLabel[p]
 	}
 	fmt.Fprintf(os.Stderr, "First run for %s — let's set your plan so cost is framed against what you pay.\n", strings.Join(names, ", "))
-	for _, p := range missing {
-		if pp := promptProviderPlan(p); pp != nil {
+	for i, p := range missing {
+		pp, skipAll := promptProviderPlan(p, i+1, len(missing))
+		if pp != nil {
 			cfg.Plans[p] = *pp
+		}
+		if skipAll {
+			// Save "skip" for everything not yet asked too, so the next run
+			// doesn't prompt about them again — a real skip, not a retry.
+			for _, rest := range missing[i+1:] {
+				cfg.Plans[rest] = *catalogPlan(rest, "skip")
+			}
+			break
 		}
 	}
 	if err := SaveConfig(cfg); err != nil {
@@ -226,27 +235,49 @@ func priceSuffix(label string) string {
 }
 
 // promptProviderPlan renders one provider's plan menu and reads a choice.
-func promptProviderPlan(provider string) *ProviderPlan {
+// step/total are 1-based progress within a multi-provider run (e.g. the
+// auto-prompt for several new providers at once); pass total<=1 to omit the
+// progress note and the "skip all remaining" shortcut, e.g. from `configure`'s
+// own picker, which already has its own way to stop (Done).
+//
+// Returns (plan, true) if the user chose to skip this provider *and* every
+// other one still pending in this run ([0], only offered when total > 1).
+func promptProviderPlan(provider string, step, total int) (*ProviderPlan, bool) {
 	catalog := planCatalogs[provider]
 	r := bufio.NewReader(os.Stdin)
+	progress := ""
+	if total > 1 {
+		progress = fmt.Sprintf(" — provider %d of %d", step, total)
+	}
 	for attempts := 0; attempts < 5; attempts++ {
-		fmt.Fprintf(os.Stderr, "\nWhat's your %s plan?\n", providerLabel[provider])
+		fmt.Fprintf(os.Stderr, "\nWhat's your %s plan?%s\n", providerLabel[provider], progress)
 		for i, p := range catalog {
-			fmt.Fprintf(os.Stderr, "  [%d] %s%s\n", i+1, p.name, priceSuffix(p.priceLabel))
+			label := p.name
+			if p.key == "skip" {
+				label = "Skip" // the catalog's stored name ("(not set)") reads as a
+				// state, not an action — show it as an actual choice here.
+			}
+			fmt.Fprintf(os.Stderr, "  [%d] %s%s\n", i+1, label, priceSuffix(p.priceLabel))
+		}
+		if total > 1 {
+			fmt.Fprintf(os.Stderr, "  [0] Skip this and all remaining providers\n")
 		}
 		fmt.Fprintf(os.Stderr, "Choice [1-%d]: ", len(catalog))
 
 		line, err := r.ReadString('\n')
 		choice := strings.TrimSpace(line)
 		if (err != nil && choice == "") || choice == "" {
-			return catalogPlan(provider, "skip") // last catalog entry is always "skip"
+			return catalogPlan(provider, "skip"), false // last catalog entry is always "skip"
+		}
+		if choice == "0" && total > 1 {
+			return catalogPlan(provider, "skip"), true
 		}
 		if idx, convErr := strconv.Atoi(choice); convErr == nil && idx >= 1 && idx <= len(catalog) {
-			return catalogPlan(provider, catalog[idx-1].key)
+			return catalogPlan(provider, catalog[idx-1].key), false
 		}
 		fmt.Fprintf(os.Stderr, "  (enter a number 1-%d)\n", len(catalog))
 	}
-	return catalogPlan(provider, "skip")
+	return catalogPlan(provider, "skip"), false
 }
 
 func catalogPlan(provider, key string) *ProviderPlan {
@@ -298,7 +329,7 @@ func runConfigure(_ []string) {
 			break
 		}
 		p := providerOrder[idx-1]
-		if pp := promptProviderPlan(p); pp != nil {
+		if pp, _ := promptProviderPlan(p, 0, 1); pp != nil {
 			cfg.Plans[p] = *pp
 		}
 	}
