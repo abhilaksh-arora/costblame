@@ -355,14 +355,21 @@ function renderOverview(rep) {
   const eyebrow = filtered
     ? `<span class="d" style="display:inline-block;width:8px;height:8px;border-radius:3px;background:${provColor(FILTER)};margin-right:6px"></span>${cap(FILTER)} spend · at API list price`
     : `Total value consumed · at API list price`;
-  const planLine = (!filtered && rep.plan) || (FILTER === "claude" && rep.plan)
-    ? `<div class="planline">
-        <span class="chip good"${filtered ? ` style="background:${provColor('claude')}"` : ""}>▲ ${rep.plan.multiplier.toFixed(1)}× your plan</span>
-        <span class="chip ghost">${cap(rep.plan.name)} · ${rep.plan.price_label}</span>
-      </div>`
-    : filtered
-      ? `<div class="planline"><span class="chip ghost">${cap(FILTER)} · API / pay-as-you-go · ${share}% of total</span></div>`
-      : `<div class="planline"><span class="chip ghost">API / pay-as-you-go</span></div>`;
+  const plansInView = filtered ? (rep.plans || []).filter(p => p.provider === FILTER) : (rep.plans || []);
+  let planLine;
+  if (plansInView.length === 1) {
+    const pl = plansInView[0];
+    planLine = `<div class="planline">
+        <span class="chip good"${filtered ? ` style="background:${provColor(pl.provider)}"` : ""}>▲ ${pl.multiplier.toFixed(1)}× your plan</span>
+        <span class="chip ghost">${cap(pl.name)} · ${pl.price_label}</span>
+      </div>`;
+  } else if (plansInView.length > 1) {
+    planLine = `<div class="planline"><span class="chip ghost">${plansInView.length} plans configured — see Cost Intelligence below</span></div>`;
+  } else if (filtered) {
+    planLine = `<div class="planline"><span class="chip ghost">${cap(FILTER)} · API / pay-as-you-go · ${share}% of total</span></div>`;
+  } else {
+    planLine = `<div class="planline"><span class="chip ghost">API / pay-as-you-go</span></div>`;
+  }
 
   const view = projView(rep);
   const t = filtered ? (s ? s.totals : { input: 0, output: 0, cache_create: 0, cache_read: 0, cost: 0 }) : rep.totals;
@@ -378,7 +385,8 @@ function renderOverview(rep) {
 
   const a = rep.activity;
   const showActivity = (FILTER === "all" || FILTER === "claude") && a && (a.edits || a.tool_calls);
-  let impactHtml = "", roiHtml = "";
+  let impactHtml = "";
+  const costPerEdit = (a && a.edits) ? a.cost_per_edit : null;
 
   if (showActivity) {
     const files = rep.files || [];
@@ -407,41 +415,49 @@ function renderOverview(rep) {
       <div class="impact-top">${linesBars}${mini}</div>
       ${cacheEff != null ? `<div style="padding:2px 22px 14px">${meterBar("Cache efficiency · cache-read share of input", cacheEff, cacheEff.toFixed(0) + "%")}</div>` : ""}
       <div class="tiles" style="margin:0;padding:4px 22px 20px">${impactTiles}</div>`;
+  }
 
-    const apiEq = cost;
-    const costPerEdit = a.edits ? a.cost_per_edit : null;
-    const plan = rep.plan;
-    const headline = plan
-      ? `You consumed <b>${money(apiEq)}</b> of API-equivalent tokens — <b>${plan.multiplier.toFixed(1)}×</b> your flat ${plan.price_label} ${cap(plan.name)} plan.`
-      : `You consumed <b>${money(apiEq)}</b> of API-equivalent tokens on an unconfigured plan.`;
-    const fine = plan
-      ? `${rep.sessions} session${rep.sessions === 1 ? "" : "s"} priced · ${money(rep.sessions ? apiEq / rep.sessions : 0)} / session`
-      : `Run <code>costblame configure</code> to compare this against a real plan.`;
-    const roiBars = plan
-      ? (() => {
-          const max = Math.max(apiEq, plan.monthly_usd, 1);
-          return `<div class="dualbar" style="margin-top:14px">
-            <div class="dualbar-row"><span class="lbl">API equiv</span><span class="track"><i style="width:${Math.max(2, apiEq / max * 100)}%;background:var(--seq)"></i></span><span class="val">${money(apiEq)}</span></div>
-            <div class="dualbar-row"><span class="lbl">Plan</span><span class="track"><i style="width:${Math.max(2, plan.monthly_usd / max * 100)}%;background:var(--seq)"></i></span><span class="val">${money(plan.monthly_usd)}/mo</span></div>
-          </div>`;
-        })()
-      : "";
-    roiHtml = `
+  // ROI applies to any provider with a configured plan, not just Claude — a
+  // Codex- or Gemini-filtered view (or --all with several configured) should
+  // still get this panel, independent of whether Claude edit activity exists.
+  const roiPlans = plansInView;
+  let roiCards;
+  if (roiPlans.length > 0) {
+    roiCards = roiPlans.map(pl => {
+      const max = Math.max(pl.api_cost, pl.monthly_usd, 1);
+      const bars = `<div class="dualbar" style="margin-top:14px">
+          <div class="dualbar-row"><span class="lbl">API equiv</span><span class="track"><i style="width:${Math.max(2, pl.api_cost / max * 100)}%;background:var(--seq)"></i></span><span class="val">${money(pl.api_cost)}</span></div>
+          <div class="dualbar-row"><span class="lbl">Plan</span><span class="track"><i style="width:${Math.max(2, pl.monthly_usd / max * 100)}%;background:var(--seq)"></i></span><span class="val">${money(pl.monthly_usd)}/mo</span></div>
+        </div>`;
+      const costEditStat = pl.provider === "claude" && costPerEdit != null
+        ? `<div class="s"><div class="k">Cost / edit</div><div class="v">$${costPerEdit.toFixed(3)}</div></div>` : "";
+      return `<div class="roi-wrap">
+        <div class="roi-box">
+          <div class="lbl">${cap(pl.provider)} — return on plan</div>
+          <hr>
+          <p>You consumed <b>${money(pl.api_cost)}</b> of API-equivalent tokens — <b>${pl.multiplier.toFixed(1)}×</b> your flat ${pl.price_label} ${cap(pl.name)} plan.</p>
+          <div class="fine">${rep.sessions} session${rep.sessions === 1 ? "" : "s"} priced overall</div>
+        </div>
+        <div class="statcol">${costEditStat}${bars}</div>
+      </div>`;
+    }).join('<div class="ov-div" style="margin:2px 22px"></div>');
+  } else {
+    roiCards = `<div class="roi-wrap">
+      <div class="roi-box">
+        <div class="lbl">Return on plan</div>
+        <hr>
+        <p>You consumed <b>${money(cost)}</b> of API-equivalent tokens on an unconfigured plan.</p>
+        <div class="fine">Run <code>costblame configure</code> to compare this against a real plan.</div>
+      </div>
+      <div class="statcol">
+        <div class="s"><div class="k">Cost / edit</div><div class="v">${costPerEdit != null ? "$" + costPerEdit.toFixed(3) : "–"}</div></div>
+      </div>
+    </div>`;
+  }
+  const roiHtml = `
       <div class="ov-div"></div>
       <div class="phd"><h2>Cost intelligence & plan ROI</h2><span class="hint">API-equivalent estimate</span></div>
-      <div class="roi-wrap">
-        <div class="roi-box">
-          <div class="lbl">Return on plan</div>
-          <hr>
-          <p>${headline}</p>
-          <div class="fine">${fine}</div>
-        </div>
-        <div class="statcol">
-          <div class="s"><div class="k">Cost / edit</div><div class="v">${costPerEdit != null ? "$" + costPerEdit.toFixed(3) : "–"}</div></div>
-          ${roiBars}
-        </div>
-      </div>`;
-  }
+      ${roiCards}`;
 
   return `<div class="panel">
     <div class="ov-top">

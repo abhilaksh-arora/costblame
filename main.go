@@ -42,7 +42,7 @@ import (
 // two, instead of one repo (a single --repo, or none) or every repo (--all).
 type repoList []string
 
-func (r *repoList) String() string   { return strings.Join(*r, ",") }
+func (r *repoList) String() string { return strings.Join(*r, ",") }
 func (r *repoList) Set(v string) error {
 	*r = append(*r, v)
 	return nil
@@ -171,12 +171,16 @@ func runReport(args []string, sync bool) {
 	}
 
 	// Plan framing: never prompt for --json (it's a pipe consumer); prompt once
-	// on first interactive table use.
+	// per provider actually present in this report, on first interactive use.
+	providerNames := make([]string, len(rep.Providers))
+	for i, p := range rep.Providers {
+		providerNames[i] = p.Provider
+	}
 	var cfg *Config
 	if *asJSON {
 		cfg, _ = LoadConfig()
 	} else {
-		cfg = ensureConfig()
+		cfg = ensureConfig(providerNames)
 	}
 	attachPlan(&rep, cfg, *raw)
 
@@ -187,10 +191,10 @@ func runReport(args []string, sync bool) {
 		return
 	}
 
-	if rep.Plan != nil {
-		fmt.Printf("Your plan: %s (%s flat)\n", rep.Plan.Name, rep.Plan.PriceLabel)
-		fmt.Printf("Your Claude usage at API rates: $%.2f (%.1fx your subscription cost)\n\n",
-			rep.Plan.APICost, rep.Plan.Multiplier)
+	for _, pl := range rep.Plans {
+		fmt.Printf("Your %s plan: %s (%s flat)\n", providerLabel[pl.Provider], pl.Name, pl.PriceLabel)
+		fmt.Printf("Your %s usage at API rates: $%.2f (%.1fx your subscription cost)\n\n",
+			providerLabel[pl.Provider], pl.APICost, pl.Multiplier)
 	}
 
 	// When more than one AI provider is present, lead with the split so
@@ -215,7 +219,7 @@ func runReport(args []string, sync bool) {
 
 	fmt.Fprintf(os.Stderr, "\n%d project(s), %d session(s); pricing: %s\n",
 		len(rep.Projects), rep.Sessions, src)
-	if rep.Plan == nil {
+	if len(rep.Plans) == 0 {
 		fmt.Fprintln(os.Stderr, "note: cost is estimated API list price. Run `costblame configure` to compare it against your plan.")
 	}
 }

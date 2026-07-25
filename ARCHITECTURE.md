@@ -17,42 +17,65 @@ as a bill. Cache-read tokens usually dominate the total; on a subscription those
 sit inside your flat rate (subject to usage limits), not your dollars.
 
 The figure *is* a real bill only if you drive the tool with a pay-as-you-go
-**API key**. A Claude subscription offsets **only Claude** spend — Codex and
-Gemini are billed on their own plans / keys, so `costblame` shows each provider's
-cost separately and applies the plan multiplier to the Claude portion alone.
+**API key**. A subscription offsets **only the provider it's for** — a Claude
+plan never offsets Codex or Gemini spend, since they're billed separately.
+`costblame` shows each provider's cost on its own, and (per below) can frame
+each one against its own plan independently.
 
-### Plan-aware framing (default)
+### Plan-aware framing (default), per provider
 
 So the number isn't mistaken for an invoice, costblame frames it against your
-plan. On first run it asks once:
+plan — one plan per provider, since each is billed separately. On first run it
+asks once per provider that actually has spend in that run:
 
 ```sh
-costblame configure   # pick your plan; stored in ~/.costblame/config.json
+costblame configure   # pick a plan for Claude, Codex, Gemini — any or all
 ```
 
-Menu: Pro ($20/mo), Max 5x ($100), Max 20x ($200), Team Standard ($25/seat),
-Team Premium ($125/seat), API/pay-as-you-go, or Skip. After that, output leads
-with the comparison instead of a bare dollar figure:
+`configure` is a picker loop: choose a provider, pick its plan, land back on
+the picker to do another or hit Done. Re-run it anytime to add a provider you
+didn't have before or change one you already set. Each provider's config is
+stored under its own key in `~/.costblame/config.json`
+(`{"plans": {"claude": {...}, "codex": {...}}}`); a config file from before
+multi-provider support (a bare `{"plan": "pro", ...}`) is auto-migrated into
+`plans.claude` the first time it's read.
+
+Catalogs (verified 2026-07-25 — check each provider's own pricing page if a
+number looks stale):
+
+| Provider | Plans |
+|---|---|
+| Claude | Pro ($20/mo), Max 5x ($100), Max 20x ($200), Team Standard ($25/seat), Team Premium ($125/seat) |
+| Codex (ChatGPT) | Plus ($20/mo), Pro ($200/mo), Team ($25/seat) |
+| Gemini | Google AI Pro ($19.99/mo), Google AI Ultra ($249.99/mo), Code Assist Standard ($19/seat), Code Assist Enterprise ($45/seat) |
+
+Every catalog also offers **API / pay-as-you-go** and **Skip** — no reframing
+for that provider, its API-equivalent figure is shown as-is. After
+configuring, output leads with one comparison line per configured provider
+that has spend, instead of a bare dollar figure:
 
 ```
-Your plan: Claude Pro ($20/mo flat)
+Your Claude plan: Claude Pro ($20/mo flat)
 Your Claude usage at API rates: $120.79 (6.0x your subscription cost)
+
+Your Codex (ChatGPT) plan: ChatGPT Plus ($20/mo flat)
+Your Codex (ChatGPT) usage at API rates: $1.14 (0.1x your subscription cost)
 ```
 
-When Codex or Gemini spend is present too, a per-provider split is printed above
-the table (and shown as a segmented bar in the dashboard), so non-Claude cost is
-never hidden inside the total.
+A per-provider split is also printed above the table whenever more than one
+provider has spend (and shown as a segmented bar in the dashboard), so
+non-Claude cost is never hidden inside the total.
 
-- If you pick **API/pay-as-you-go** or **Skip**, no reframing is applied — the
-  API-equivalent figure is your real cost (or you opted out), so it's shown as-is.
-- The per-project / per-branch dollar figures are unchanged — still the only unit
-  that compares spend across models. Only the headline gains a plan line.
-- `--raw` on any command drops the plan line and shows the API-equivalent view.
-- `--json` includes a `plan` block (`monthly_usd`, `api_cost`, `multiplier`) when
-  a paid plan is configured; it never prompts.
+- The per-project / per-branch dollar figures are unchanged — still the only
+  unit that compares spend across models. Only the headline gains plan lines.
+- `--raw` on any command drops all plan lines and shows the plain
+  API-equivalent view.
+- `--json` includes a `plans` array (`provider`, `monthly_usd`, `api_cost`,
+  `multiplier` per entry) for whichever providers are configured and have
+  spend; it never prompts.
 
-The plan → flat-price mapping is a small hardcoded table (see `config.go`); update
-it if Anthropic changes plan prices.
+The plan → flat-price catalogs are a small hardcoded table per provider (see
+`config.go`, `planCatalogs`); update them if a provider changes plan prices.
 
 ## Notes on accuracy
 

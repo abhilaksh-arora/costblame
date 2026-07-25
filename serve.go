@@ -31,7 +31,6 @@ func runServe(args []string) {
 	if err != nil {
 		fatal("loading pricing: %v", err)
 	}
-	cfg := ensureConfig() // prompt once if interactive and unconfigured
 
 	// Bare `serve` (no --all, no --repo) joins the same synced set `sync`
 	// builds up, so a dashboard started from one repo doesn't stay locked to
@@ -45,36 +44,24 @@ func runServe(args []string) {
 		}
 	}
 
+	// Discover which providers are actually in scope once, up front, so the
+	// one-time interactive plan prompt only asks about providers that have
+	// real spend here — same reasoning as sync's ensureConfig call.
+	peekProjects, _ := collectScoped(*all, repos)
+	peekRep := BuildReport(peekProjects, pt, src)
+	providerNames := make([]string, len(peekRep.Providers))
+	for i, p := range peekRep.Providers {
+		providerNames[i] = p.Provider
+	}
+	cfg := ensureConfig(providerNames)
+
 	build := func() (Report, error) {
-		var projects []ProjectData
-		switch {
-		case *all:
-			ps, err := CollectAll()
-			if err != nil {
-				return Report{}, err
-			}
-			projects = ps
-		case len(repos) > 0:
-			for _, r := range repos {
-				pd, err := CollectRepo(r)
-				if err != nil {
-					return Report{}, err
-				}
-				projects = append(projects, pd)
-			}
-		default:
-			// Re-read the synced list on every request (not just at startup)
-			// so a `costblame sync`/`remove` run in another terminal while
-			// this server is up is reflected on the next Refresh.
-			list, err := LoadSynced()
-			if err != nil {
-				return Report{}, err
-			}
-			ps, err := projectsForSynced(list)
-			if err != nil {
-				return Report{}, err
-			}
-			projects = ps
+		// Re-collected fresh on every request (not just at startup) so a
+		// `costblame sync`/`remove`/new session in another terminal is
+		// reflected on the next Refresh.
+		projects, err := collectScoped(*all, repos)
+		if err != nil {
+			return Report{}, err
 		}
 		rep := BuildReport(projects, pt, src)
 		attachPlan(&rep, cfg, *raw)

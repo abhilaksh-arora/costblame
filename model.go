@@ -135,13 +135,15 @@ type ProjectReport struct {
 	Tools     []ToolStat     `json:"tools,omitempty"` // tool call/error counts, calls desc
 }
 
-// PlanInfo frames the total API-equivalent cost against a flat subscription
-// price. Present only when a paid plan is configured (nil for API/skip/--raw).
+// PlanInfo frames one provider's API-equivalent cost against its flat
+// subscription price. One of these exists per provider that both has spend
+// in the report and a plan configured for it (see Report.Plans).
 type PlanInfo struct {
+	Provider   string  `json:"provider"` // "claude" | "codex" | "gemini"
 	Name       string  `json:"name"`
 	PriceLabel string  `json:"price_label"`
 	MonthlyUSD float64 `json:"monthly_usd"`
-	APICost    float64 `json:"api_cost"`   // = Report.Totals.Cost
+	APICost    float64 `json:"api_cost"`   // = that provider's Totals.Cost
 	Multiplier float64 `json:"multiplier"` // APICost / MonthlyUSD
 }
 
@@ -149,7 +151,7 @@ type PlanInfo struct {
 type Report struct {
 	GeneratedAt time.Time       `json:"generated_at"`
 	Pricing     string          `json:"pricing"`
-	Plan        *PlanInfo       `json:"plan,omitempty"`
+	Plans       []PlanInfo      `json:"plans,omitempty"` // one per configured provider with spend here, cost desc
 	Totals      Totals          `json:"totals"`
 	Sessions    int             `json:"sessions"`
 	Providers   []ProviderStat  `json:"providers"`          // spend split by provider, cost desc
@@ -170,23 +172,42 @@ func (r *Report) providerCost(provider string) float64 {
 	return 0
 }
 
-// attachPlan sets rep.Plan when a paid subscription is configured and raw
-// framing was not requested. The plan (a Claude subscription) offsets only
-// Claude-provider spend, so the multiplier is computed against the Claude
-// portion — Codex/Gemini are billed separately and shown as their own cost. It
-// changes no token or cost math.
+// attachPlan sets rep.Plans (one entry per provider that both has spend in
+// this report and a configured plan) unless raw framing was requested. Each
+// provider's plan offsets only that provider's own spend — a Claude
+// subscription never offsets Codex or Gemini cost, since they're billed
+// separately. Providers are considered in rep.Providers order (cost desc), so
+// rep.Plans comes out cost-sorted too. Changes no token or cost math.
 func attachPlan(rep *Report, cfg *Config, raw bool) {
-	if raw || cfg == nil || cfg.MonthlyUSD <= 0 {
+	if raw || cfg == nil {
 		return
 	}
-	claudeCost := rep.providerCost("claude")
-	rep.Plan = &PlanInfo{
-		Name:       cfg.PlanName,
-		PriceLabel: cfg.PriceLabel,
-		MonthlyUSD: cfg.MonthlyUSD,
-		APICost:    claudeCost,
-		Multiplier: claudeCost / cfg.MonthlyUSD,
+	for _, ps := range rep.Providers {
+		pp, ok := cfg.Plans[ps.Provider]
+		if !ok || pp.MonthlyUSD <= 0 {
+			continue
+		}
+		cost := ps.Totals.Cost
+		rep.Plans = append(rep.Plans, PlanInfo{
+			Provider:   ps.Provider,
+			Name:       pp.PlanName,
+			PriceLabel: pp.PriceLabel,
+			MonthlyUSD: pp.MonthlyUSD,
+			APICost:    cost,
+			Multiplier: cost / pp.MonthlyUSD,
+		})
 	}
+}
+
+// PlanFor returns the PlanInfo for one provider, or nil if none is configured
+// / that provider has no spend in this report.
+func (r *Report) PlanFor(provider string) *PlanInfo {
+	for i := range r.Plans {
+		if r.Plans[i].Provider == provider {
+			return &r.Plans[i]
+		}
+	}
+	return nil
 }
 
 // extend widens [first,last] to include t (ignoring the zero time).

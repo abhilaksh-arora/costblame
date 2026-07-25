@@ -146,6 +146,32 @@ func repoKey(cwd string) string {
 	return "(unknown)"
 }
 
+// collectScoped resolves the same --all / --repo (repeatable) / synced-set
+// precedence used by both `sync` and `serve`: --all wins, then an explicit
+// --repo list, then (default) the persistent synced set.
+func collectScoped(all bool, repos repoList) ([]ProjectData, error) {
+	switch {
+	case all:
+		return CollectAll()
+	case len(repos) > 0:
+		out := make([]ProjectData, 0, len(repos))
+		for _, r := range repos {
+			pd, err := CollectRepo(r)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, pd)
+		}
+		return out, nil
+	default:
+		list, err := LoadSynced()
+		if err != nil {
+			return nil, err
+		}
+		return projectsForSynced(list)
+	}
+}
+
 // CollectAll gathers events from every provider and groups them by repo path.
 func CollectAll() ([]ProjectData, error) {
 	act, err := gatherAllActivity()

@@ -33,8 +33,9 @@ COMMANDS
   costblame ignore [DIR]    drop a repo from --all views (default: current directory)
   costblame unignore [DIR]  reverse ignore
   costblame ignored         list what's currently ignored
-  costblame init            pick your plan (alias of configure)
-  costblame configure       same as init
+  costblame init            pick a plan per provider (alias of configure)
+  costblame configure       same as init — a Claude/Codex/Gemini picker, run
+                            anytime to add or change one
   costblame update          update to the latest release
   costblame uninstall       remove the binary + local config (logs untouched)
   costblame version         print the installed version
