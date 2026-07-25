@@ -89,4 +89,5 @@ esac
 
 echo "" >&2
 echo "run: costblame init   (pick your plan)" >&2
-echo "  or costblame serve  (dashboard)" >&2
+echo "  or costblame sync    (spend across every project)" >&2
+echo "  or costblame serve   (dashboard)" >&2

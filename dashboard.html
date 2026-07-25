@@ -108,18 +108,9 @@
   }
   .spinner { width: 15px; height: 15px; border-radius: 50%; flex: none; border: 2px solid var(--ring); border-top-color: var(--seq); animation: spin .7s linear infinite; }
 
-  /* ---------- hero ---------- */
-  .hero {
-    background: var(--surface); border: 1px solid var(--ring); border-radius: var(--r);
-    box-shadow: var(--shadow); padding: 26px 28px; margin-bottom: 16px; position: relative; overflow: hidden;
-  }
-  .hero::after {
-    content: ""; position: absolute; right: -60px; top: -60px; width: 260px; height: 260px;
-    background: radial-gradient(circle, var(--seq-wash), transparent 68%); pointer-events: none;
-  }
   .eyebrow { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
-  .hero .figure { font-size: 48px; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; margin: 8px 0 2px; }
-  .hero .figure .cents { color: var(--muted); font-weight: 640; font-size: .62em; letter-spacing: -.02em; }
+  .ov-top .figure { font-size: 48px; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; margin: 8px 0 2px; }
+  .ov-top .figure .cents { color: var(--muted); font-weight: 640; font-size: .62em; letter-spacing: -.02em; }
   .planline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
   .chip {
     display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 620;
@@ -127,8 +118,6 @@
   }
   .chip.good { color: #fff; background: var(--good-solid); }
   .chip.ghost { color: var(--ink2); background: var(--surface2); border: 1px solid var(--ring); }
-  .hero .cap { color: var(--muted); font-size: 12.5px; margin-top: 12px; max-width: 66ch; line-height: 1.5; }
-  .hero .cap b { color: var(--ink2); font-weight: 600; }
 
   /* ---------- kpi tiles ---------- */
   .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 26px; }
@@ -727,13 +716,18 @@ function renderFilesTools(rep) {
 
 /* ---------- projects panel ---------- */
 let expanded = new Set();
+let projectsExpanded = false;
 function renderProjects(rep) {
   const view = projView(rep);
   if (!view.length) return '<div class="panel"><div class="empty">No usage for this provider.</div></div>';
   const maxCost = Math.max(...view.map(v => v.cost)) || 1;
   const grand = activeTotal(rep) || 1;
   const hd = FILTER === "all" ? "Cost by project" : `Cost by project · ${cap(FILTER)}`;
-  const rows = view.map(({ p, cost, tot, sess }) => {
+  const shown = projectsExpanded ? view : view.slice(0, 7);
+  const seeAllBtn = view.length > 7
+    ? `<div class="prow"><button class="seeall" data-toggle="projects" style="padding:14px 20px">${projectsExpanded ? "Show less" : `See all ${view.length}`}</button></div>`
+    : "";
+  const rows = shown.map(({ p, cost, tot, sess }) => {
     const open = expanded.has(p.project);
     const w = (cost / maxCost * 100).toFixed(1);
     const share = (cost / grand * 100).toFixed(0);
@@ -755,7 +749,7 @@ function renderProjects(rep) {
       </div>
     </div>`;
   }).join("");
-  return `<div class="panel"><div class="phd"><h2>${hd}</h2><span class="hint">click a row to expand</span></div><div>${rows}</div></div>`;
+  return `<div class="panel"><div class="phd"><h2>${hd}</h2><span class="hint">click a row to expand</span></div><div>${rows}${seeAllBtn}</div></div>`;
 }
 
 /* ---------- top-level render ---------- */
@@ -773,7 +767,9 @@ function render(rep) {
 
   // wire interactions
   document.querySelectorAll(".prow").forEach(row => {
-    row.querySelector(".phead").addEventListener("click", (e) => {
+    const head = row.querySelector(".phead");
+    if (!head) return; // the "see all" row has no .phead — nothing to wire
+    head.addEventListener("click", (e) => {
       if (e.target.closest(".detail")) return;
       const k = decodeURIComponent(row.dataset.key);
       expanded.has(k) ? expanded.delete(k) : expanded.add(k);
@@ -781,9 +777,12 @@ function render(rep) {
     });
   });
   document.querySelectorAll("[data-toggle]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (btn.dataset.toggle === "files") filesExpanded = !filesExpanded;
-      else toolsExpanded = !toolsExpanded;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const k = btn.dataset.toggle;
+      if (k === "files") filesExpanded = !filesExpanded;
+      else if (k === "tools") toolsExpanded = !toolsExpanded;
+      else if (k === "projects") projectsExpanded = !projectsExpanded;
       render(rep);
     });
   });

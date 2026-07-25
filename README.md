@@ -48,22 +48,33 @@ go install github.com/abhilaksh-arora/costblame@latest
 
 Remove it anytime with `costblame uninstall` (or `make uninstall`).
 
+![costblame dashboard](assets/dashboard.png)
+
 ## Use
 
+There's nothing to set up per-project and nothing gets "saved" anywhere —
+costblame just reads the session logs Claude Code / Codex / Gemini already
+write locally and recomputes on every run. `sync` is the command that shows
+that, across everything:
+
 ```sh
-costblame init        # one-time: pick your plan, or skip
-costblame              # branches of the repo you're standing in
-costblame --all        # every project you've used it in
-costblame serve         # web dashboard → http://127.0.0.1:7777
+costblame init      # one-time: pick your plan, or skip
+costblame sync       # spend across every project you've used it in
+costblame serve      # web dashboard → http://127.0.0.1:7777 (pass --all for every project)
 ```
 
-That covers most people. A few more flags if you want them:
+Running `costblame` with no arguments prints a short reminder of these instead
+of a report — use `sync` for that. A few more commands and flags:
 
 ```sh
-costblame --all --by day         # spend bucketed by day or week
-costblame --json                 # full report as JSON, for piping into other tools
+costblame --repo .               # just the repo you're standing in, branch by branch
+costblame sync --by day          # spend bucketed by day or week
+costblame sync --json            # full report as JSON, for piping into other tools
 costblame --pricing rates.json   # override the built-in pricing table
 costblame serve --all            # dashboard across every project, not just this one
+costblame update                 # update to the latest release
+costblame version                # print the installed version
+costblame help                   # full command + flag reference
 ```
 
 ## Dashboard

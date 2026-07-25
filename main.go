@@ -8,10 +8,15 @@
 //
 // Usage:
 //
+//	costblame                                    a short intro (run 'sync' for real output)
+//	costblame sync                               spend across every project
 //	costblame [--repo DIR] [--all] [--json] [--by day|week] [--pricing FILE]
 //	costblame serve [--repo DIR] [--pricing FILE] [--port N]
-//	costblame init            (alias of configure — set your plan)
-//	costblame uninstall       (remove the binary + ~/.costblame config)
+//	costblame init                               (alias of configure — set your plan)
+//	costblame update                             update to the latest release
+//	costblame uninstall                          (remove the binary + ~/.costblame config)
+//	costblame version
+//	costblame help
 //
 // All data stays on the local machine.
 package main
@@ -24,18 +29,32 @@ import (
 )
 
 func main() {
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
-		case "serve":
-			runServe(os.Args[2:])
-			return
-		case "configure", "init":
-			runConfigure(os.Args[2:])
-			return
-		case "uninstall":
-			runUninstall(os.Args[2:])
-			return
-		}
+	if len(os.Args) == 1 {
+		runIntro()
+		return
+	}
+	switch os.Args[1] {
+	case "serve":
+		runServe(os.Args[2:])
+		return
+	case "configure", "init":
+		runConfigure(os.Args[2:])
+		return
+	case "uninstall":
+		runUninstall(os.Args[2:])
+		return
+	case "sync":
+		runReport(append([]string{"--all"}, os.Args[2:]...))
+		return
+	case "update":
+		runUpdate(os.Args[2:])
+		return
+	case "version", "--version", "-v":
+		runVersion(os.Args[2:])
+		return
+	case "help", "--help", "-h":
+		runHelp(os.Args[2:])
+		return
 	}
 	runReport(os.Args[1:])
 }
