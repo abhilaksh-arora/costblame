@@ -9,8 +9,8 @@
 // Usage:
 //
 //	costblame                                    a short intro (run 'sync' for real output)
-//	costblame sync                               spend across every project
-//	costblame [--repo DIR] [--all] [--json] [--by day|week] [--pricing FILE]
+//	costblame sync [--all] [--repo DIR] [--json] [--by day|week] [--pricing FILE]
+//	                                              spend for this project, or --all for every one
 //	costblame serve [--repo DIR] [--pricing FILE] [--port N]
 //	costblame init                               (alias of configure — set your plan)
 //	costblame update                             update to the latest release
@@ -44,7 +44,12 @@ func main() {
 		runUninstall(os.Args[2:])
 		return
 	case "sync":
-		runReport(append([]string{"--all"}, os.Args[2:]...))
+		// Same flags as the default report (--repo, --all, --json, ...); just
+		// the explicit verb that actually reads logs, so a bare `costblame`
+		// (no args at all) stays a no-op intro instead of silently scanning —
+		// the same reason people type a bare `node`/`git` just to check it's
+		// installed, not to run anything.
+		runReport(os.Args[2:])
 		return
 	case "update":
 		runUpdate(os.Args[2:])

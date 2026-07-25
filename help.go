@@ -5,16 +5,19 @@ import "fmt"
 // runIntro is what a bare `costblame` (no args at all) prints. It used to run
 // the current-repo report — but that made it look like nothing happened for
 // anyone who ran it in a repo other than the one they meant to check, since
-// costblame never writes anything anywhere. `sync` is now the command that
-// actually shows spend.
+// costblame never writes anything anywhere. A bare invocation is exactly what
+// people type for other CLIs (node, git) just to check it's installed, not to
+// run something — so it shouldn't scan logs either. `sync` is the explicit
+// verb that actually reads them.
 func runIntro() {
 	fmt.Print(`costblame — attribute your AI coding token spend across Claude Code, Codex, and Gemini CLI.
 
-  costblame sync      spend across every project (start here)
-  costblame serve     open the local dashboard
-  costblame init      pick your plan (one-time)
-  costblame update    update to the latest version
-  costblame help      full command reference
+  costblame sync       spend for this project (start here)
+  costblame sync --all spend across every project
+  costblame serve      open the local dashboard
+  costblame init       pick your plan (one-time)
+  costblame update     update to the latest version
+  costblame help       full command reference
 `)
 }
 
@@ -22,8 +25,7 @@ func runHelp(args []string) {
 	fmt.Print(`costblame — attribute your AI coding token spend across Claude Code, Codex, and Gemini CLI.
 
 COMMANDS
-  costblame sync            spend across every project you've used it in
-  costblame [flags]         spend for one repo (default: the current directory)
+  costblame sync [flags]    spend for this project (add --all for every project)
   costblame serve [flags]   open the local dashboard
   costblame init            pick your plan (alias of configure)
   costblame configure       same as init
@@ -32,9 +34,9 @@ COMMANDS
   costblame version         print the installed version
   costblame help            this text
 
-FLAGS (report / sync)
+FLAGS (sync)
   --repo DIR       path to the repo (default: current directory; ignored with --all)
-  --all            aggregate every project under ~/.claude/projects (what sync uses)
+  --all            aggregate every project under ~/.claude/projects
   --json           emit the full report as JSON
   --by day|week    bucket spend by time instead of branch/project
   --raw            show API-equivalent cost only, no plan comparison
